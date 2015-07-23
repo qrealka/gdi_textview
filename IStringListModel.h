@@ -6,15 +6,18 @@
 namespace kofax
 {
 
-struct IStringLine;
+struct IStringIndex;
 
 struct IStringListModel
 {
 	virtual size_t GetStringsCount() const = 0;
-	virtual std::unique_ptr<IStringLine> GetString(size_t number) = 0;
-	virtual std::unique_ptr<const IStringLine> GetConstString(size_t number) const = 0;
+	virtual std::unique_ptr<const IStringIndex> GetString(size_t number) const = 0;
 
 	virtual ~IStringListModel() = default;
+
+protected:
+	// for enable_shared_for_this
+	IStringListModel() = default;
 
 private:
 	IStringListModel(const IStringListModel&) = delete;

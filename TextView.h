@@ -9,7 +9,7 @@ namespace kofax
 {
 
 struct IStringListModel;
-struct IStringLine;
+struct IStringIndex;
 
 class TextView 
 {
@@ -28,15 +28,15 @@ private:
 	TextView(const TextView&) = delete;
 	TextView& operator=(const TextView&) = delete;
 
-	void PaintBackground(HDC hdc, int x, int y, int width, long height);
-	void PaintText(HDC hdc, const std::unique_ptr<const IStringLine>& line, int x, int y, HRGN region);
+	void PaintBackground(HDC hdc, int x, int y, int width, long height)const;
+	void PaintText(HDC hdc, const std::unique_ptr<const IStringIndex>& line, int x, int y, HRGN region)const;
 
 	void UpdateView();
 	void RefreshWindow() const;
 
 	LRESULT OnSetFont();
 	LRESULT OnSize(UINT nFlags, int width, int height);
-	LRESULT OnMouseActivate(HWND hwndTop, UINT nHitTest, UINT nMessage);
+	LRESULT OnMouseActivate(HWND hwndTop, UINT nHitTest, UINT nMessage)const;
 	LRESULT OnPaint();
 
 	LONG GetLeftMargin();

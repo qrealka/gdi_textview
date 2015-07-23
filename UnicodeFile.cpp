@@ -1,13 +1,11 @@
 #include "UnicodeFile.h"
+#include "LineIndex.h"
 #include "EncodingDetect.h"
-#include <locale>
-#include <iostream>
+
 #include <codecvt>
 #include <fstream>
 #include <vector>
-#include <algorithm>
 #include <iomanip>
-#include <cstdint>
 #include <ios>
 #include <assert.h>
 
@@ -94,8 +92,8 @@ std::wifstream& SafeGetLine(std::wifstream& in, std::wstring& line)
 	}
 }
 
-template<typename OutputIterator, size_t BytesCount = 1024>
-bool ReadFirstBytes(const wchar_t* fileName, OutputIterator out)
+template<typename OutputIterator>
+bool ReadFirstBytes(const wchar_t* fileName, size_t bytesCount, OutputIterator out)
 {
 	assert(fileName);
 
@@ -103,7 +101,7 @@ bool ReadFirstBytes(const wchar_t* fileName, OutputIterator out)
 	if (inputFile.bad())
 		return false;
 
-	size_t bufSize = min(BytesCount, inputFile.tellg());
+	size_t bufSize = min(bytesCount, inputFile.tellg());
 	inputFile.seekg(0, std::ios::beg);
 	if (!bufSize)
 		return false;
@@ -116,58 +114,49 @@ bool ReadFirstBytes(const wchar_t* fileName, OutputIterator out)
 
 namespace kofax
 {
-
+	
 std::shared_ptr<IStringListModel> UnicodeFile::OpenUnicodeFile(const wchar_t* fileName)
 {
+	static const size_t BufferSizeForEncodingDetector = 1024;
+
 	std::vector<char> buf;
-	buf.reserve(1024);
-	if (!ReadFirstBytes(fileName, std::back_inserter(buf)))
+	buf.reserve(BufferSizeForEncodingDetector);
+	if (!ReadFirstBytes(fileName, BufferSizeForEncodingDetector, std::back_inserter(buf)))
 		return std::shared_ptr<IStringListModel>();
 
 	if (!buf.empty())
 	{
 		std::wifstream in(fileName, std::ios::binary | std::ios::ate);
-		int64_t fsize = in.tellg();
+		if (!in.tellg())
+			return std::shared_ptr<IStringListModel>();
 
 		in.seekg(0, std::ios::beg);
 		in.imbue(DetectLocale(buf.data(), buf.data() + buf.size(), in.getloc()));
-
-		std::wstring line;
-		for (bool first = true; fsize && in.good(); first = false)
-		{
-			//getline(in, line);
-			SafeGetLine(in, line);
-
-			if (in.bad() || in.fail())
-			{
-				if (first)
-				{
-					in.close();
-					in.open(fileName, std::ios::binary);
-					in.seekg(0, std::ios::beg);
-					in.imbue(std::locale(in.getloc(), new std::codecvt<wchar_t, char, mbstate_t>));
-					continue;
-				}
-				break;
-			}
-			else
-			{
-				
-				if (in.eof())
-					break;
-			}
-		}
-
+		return std::shared_ptr<IStringListModel>(new UnicodeFile(in));
 	}
+
+	return std::shared_ptr<IStringListModel>();
 }
 
 UnicodeFile::~UnicodeFile()
 {
 }
 
-UnicodeFile::UnicodeFile(const wchar_t* fileName)
+UnicodeFile::UnicodeFile(std::wifstream& file)
 {
-	
+	std::wstring line;
+	for (bool first = true; file.good(); first = false)
+	{
+		SafeGetLine(file, line);
+
+		if (file.bad() || file.fail())
+		{
+			// sbumpc return EOF because wrong codecvt using in specified locale
+			if (first)
+				throw std::runtime_error("Cannot work with ANSI files!");
+			break;
+		}
+	}
 }
 
 size_t UnicodeFile::GetStringsCount() const
@@ -175,11 +164,11 @@ size_t UnicodeFile::GetStringsCount() const
 	return m_lines.size();
 }
 
-std::unique_ptr<IStringLine> UnicodeFile::GetString(size_t number)
+std::unique_ptr<const IStringIndex> UnicodeFile::GetString(size_t number) const
 {
-	//shared_from_this();
+	return number < m_lines.size() 
+		? std::unique_ptr<const IStringIndex>(std::make_unique<LineIndex const>(shared_from_this(), number, m_lines[number]))
+		: nullptr;
 }
 
-std::unique_ptr<const IStringLine> UnicodeFile::GetConstString(size_t number) const
-{}
 }

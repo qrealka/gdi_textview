@@ -1,6 +1,6 @@
 #include "TextView.h"
 #include "IStringListModel.h"
-#include "IStringLine.h"
+#include "IStringIndex.h"
 #include <string>
 #include <tchar.h>
 #include <assert.h>
@@ -69,7 +69,7 @@ LRESULT TextView::OnPaint()
 		PaintBackground(hdcMem, 0, 0, width, m_nLineHeight);
 		if (m_model)
 		{
-			PaintText(hdcMem, m_model->GetConstString(i), 0, 0, hrgnUpdate);
+			PaintText(hdcMem, m_model->GetString(i), 0, 0, hrgnUpdate);
 		}
 
 		// transfer to screen 
@@ -126,7 +126,7 @@ LRESULT TextView::OnSize(UINT nFlags, int width, int height)
 	return 0;
 }
 
-LRESULT TextView::OnMouseActivate(HWND hwndTop, UINT nHitTest, UINT nMessage)
+LRESULT TextView::OnMouseActivate(HWND hwndTop, UINT nHitTest, UINT nMessage)const
 {
 	SetFocus(m_hWnd);
 	return MA_ACTIVATE;
@@ -139,7 +139,7 @@ const TCHAR* TextView::GetTextViewClassName()
 	return name;
 }
 
-void TextView::PaintBackground(HDC hdc, int x, int y, int width, long height)
+void TextView::PaintBackground(HDC hdc, int x, int y, int width, long height)const
 {
 	const RECT rect = { x, y, x + width, y + height };
 
@@ -148,26 +148,29 @@ void TextView::PaintBackground(HDC hdc, int x, int y, int width, long height)
 	//SetBkColor(hdc, fill);
 }
 
-void TextView::PaintText(HDC hdc, const std::unique_ptr<const IStringLine>& line, int x, int y, HRGN region)
+void TextView::PaintText(HDC hdc, const std::unique_ptr<const IStringIndex>& line, int x, int y, HRGN region)const
 {
-	RECT bounds;
-	HRGN hrgnBounds = nullptr;
+	if (line && line->IsValid())
+	{
+		RECT bounds;
+		HRGN hrgnBounds = nullptr;
 
-	GetClientRect(m_hWnd, &bounds);
-	SelectClipRgn(hdc, nullptr);
+		GetClientRect(m_hWnd, &bounds);
+		SelectClipRgn(hdc, nullptr);
 
-	SetBkMode(hdc, TRANSPARENT);
-	SetTextAlign(hdc, TA_LEFT);
-	const auto& str = line->GetLine();
+		SetBkMode(hdc, TRANSPARENT);
+		SetTextAlign(hdc, TA_LEFT);
+		const auto& str = line->GetLine();
 
-	//SIZE  sz;
-	//GetTextExtentPoint32(hdc, str.c_str(), str.length(), &sz);
-	//const RECT rc = { x, y, min(x + sz.cx, rect.right), min(y + m_nLineHeight, rect.bottom) };
+		//SIZE  sz;
+		//GetTextExtentPoint32(hdc, str.c_str(), str.length(), &sz);
+		//const RECT rc = { x, y, min(x + sz.cx, rect.right), min(y + m_nLineHeight, rect.bottom) };
 
-	ExtTextOut(hdc, x, y, ETO_CLIPPED | ETO_OPAQUE, &bounds, str.c_str(), str.length(), nullptr); 
+		ExtTextOut(hdc, x, y, ETO_CLIPPED | ETO_OPAQUE, &bounds, str.c_str(), str.length(), nullptr);
 
-	DeleteObject(hrgnBounds);
-	SelectClipRgn(hdc, nullptr);
+		DeleteObject(hrgnBounds);
+		SelectClipRgn(hdc, nullptr);
+	}
 }
 
 LRESULT TextView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)

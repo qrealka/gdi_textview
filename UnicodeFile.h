@@ -3,30 +3,26 @@
 
 #include "IStringListModel.h"
 #include <vector>
-#include <utility>
-
-
 
 namespace kofax
 {
 	class UnicodeFile 
-		: private IStringListModel
-		, private std::enable_shared_from_this<IStringListModel>
+		: public IStringListModel
+		, public std::enable_shared_from_this<IStringListModel>
 	{
 	public:
 		static std::shared_ptr<IStringListModel> OpenUnicodeFile(const wchar_t* fileName);
 		~UnicodeFile();
 
 	private:
-		explicit UnicodeFile(const wchar_t* fileName);
+		explicit UnicodeFile(std::wifstream& file);
 
 		UnicodeFile(const UnicodeFile&) = delete;
 		UnicodeFile& operator=(const UnicodeFile&) = delete;
 
 		// IStringListModel
-		size_t GetStringsCount() const override;
-		std::unique_ptr<IStringLine> GetString(size_t number) override;
-		std::unique_ptr<const IStringLine> GetConstString(size_t number) const override;
+		size_t GetStringsCount() const final override;
+		std::unique_ptr<const IStringIndex> GetString(size_t number) const final override;
 
 	private:
 		std::vector<std::wstring> m_lines;

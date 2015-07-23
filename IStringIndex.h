@@ -8,19 +8,21 @@ namespace kofax
 {
 
 struct IStringListModel;
-struct IStringLine
+struct IStringIndex
 {
-	virtual std::weak_ptr<IStringListModel> GetModel() const = 0;
+	virtual std::weak_ptr<const IStringListModel> GetModel() const = 0;
 	virtual size_t GetLineNumber() const = 0;
 	virtual const std::wstring& GetLine() const = 0;
-	virtual std::wstring GetLine() = 0;
 	virtual bool IsValid() const = 0;
 
-	virtual ~IStringLine() = default;
+	virtual ~IStringIndex() = default;
+
+protected:
+	IStringIndex() = default;
 
 private:
-	IStringLine(const IStringLine&) = delete;
-	IStringLine& operator=(const IStringLine&) = delete;
+	IStringIndex(const IStringIndex&) = delete;
+	IStringIndex& operator=(const IStringIndex&) = delete;
 };
 
 }
