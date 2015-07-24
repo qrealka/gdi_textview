@@ -183,7 +183,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	LoadString(hInstance, IDC_KOFAXTEST, szWindowClass, MAX_LOADSTRING);
 	
 	MyRegisterClass(hInstance);
-	RegisterTextView(hInstance);
+	RegisterTextView(hInstance, argv[1]);
 
 	// Perform application initialization:
 	if (!InitInstance(hInstance, nCmdShow))

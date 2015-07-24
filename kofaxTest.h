@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-BOOL WINAPI	RegisterTextView(HINSTANCE hInstance);
+BOOL WINAPI	RegisterTextView(HINSTANCE hInstance, const wchar_t* fileName);
 HWND WINAPI CreateTextView(HWND hwndParent);
 
 #ifdef __cplusplus

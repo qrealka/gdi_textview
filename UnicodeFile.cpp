@@ -115,27 +115,32 @@ bool ReadFirstBytes(const wchar_t* fileName, size_t bytesCount, OutputIterator o
 namespace kofax
 {
 	
-std::shared_ptr<IStringListModel> UnicodeFile::OpenUnicodeFile(const wchar_t* fileName)
+std::shared_ptr<IListModel> UnicodeFile::OpenUnicodeFile(const wchar_t* fileName)
 {
 	static const size_t BufferSizeForEncodingDetector = 1024;
 
 	std::vector<char> buf;
 	buf.reserve(BufferSizeForEncodingDetector);
 	if (!ReadFirstBytes(fileName, BufferSizeForEncodingDetector, std::back_inserter(buf)))
-		return std::shared_ptr<IStringListModel>();
+		return nullptr;
 
 	if (!buf.empty())
 	{
 		std::wifstream in(fileName, std::ios::binary | std::ios::ate);
 		if (!in.tellg())
-			return std::shared_ptr<IStringListModel>();
+			return nullptr;
 
 		in.seekg(0, std::ios::beg);
 		in.imbue(DetectLocale(buf.data(), buf.data() + buf.size(), in.getloc()));
-		return std::shared_ptr<IStringListModel>(new UnicodeFile(in));
+		return std::shared_ptr<UnicodeFile>(new UnicodeFile(in));
 	}
 
-	return std::shared_ptr<IStringListModel>();
+	return nullptr;
+}
+
+const std::wstring& UnicodeFile::GetStringLine(size_t number) const
+{
+	return m_lines.at(number);
 }
 
 UnicodeFile::~UnicodeFile()
@@ -156,18 +161,19 @@ UnicodeFile::UnicodeFile(std::wifstream& file)
 				throw std::runtime_error("Cannot work with ANSI files!");
 			break;
 		}
+		m_lines.push_back(line);
 	}
 }
 
-size_t UnicodeFile::GetStringsCount() const
+size_t UnicodeFile::GetSize() const
 {
 	return m_lines.size();
 }
 
-std::unique_ptr<const IStringIndex> UnicodeFile::GetString(size_t number) const
+std::unique_ptr<const IListIndex> UnicodeFile::GetIndex(size_t number) const
 {
 	return number < m_lines.size() 
-		? std::unique_ptr<const IStringIndex>(std::make_unique<LineIndex const>(shared_from_this(), number, m_lines[number]))
+		? std::unique_ptr<const IListIndex>(std::make_unique<LineIndex const>(shared_from_this(), number))
 		: nullptr;
 }
 

@@ -1,19 +1,8 @@
 #include "TextView.h"
-#include "IStringListModel.h"
-#include "IStringIndex.h"
+#include "IListModel.h"
+#include "IListIndex.h"
 #include <string>
-#include <tchar.h>
 #include <assert.h>
-
-namespace
-{
-
-std::wstring GetLine(size_t ind)
-{
-	return std::wstring(L"Hello world ") + std::to_wstring(ind);
-}
-
-}
 
 namespace kofax
 {
@@ -27,10 +16,10 @@ TextView::TextView(HWND hwndParent)
 	OnSetFont();
 }
 
-void TextView::SetModel(IStringListModel* const model)
+void TextView::SetModel(const std::shared_ptr<IListModel>& model)
 {
 	if (model)	{
-		m_model.reset(model);
+		m_model = model;
 		UpdateView();
 	} else {
 		assert(false);
@@ -58,19 +47,16 @@ LRESULT TextView::OnPaint()
 	auto hdcMem = CreateCompatibleDC(ps.hdc);
 	auto hbmMem = CreateCompatibleBitmap(ps.hdc, rect.right - rect.left, m_nLineHeight);
 	SelectObject(hdcMem, hbmMem);
-	size_t last = m_model ? m_model->GetStringsCount() : max(ps.rcPaint.bottom / m_nLineHeight, 0);
+	size_t last = max(ps.rcPaint.bottom / m_nLineHeight, 0);
 
-	//for (LONG i = 0, last = max(ps.rcPaint.bottom / m_nLineHeight, 0); i <= last; ++i) {
 	for (size_t i = 0; i <= last; ++i)
 	{
 		auto sy = i * m_nLineHeight;
 		auto width = rect.right - rect.left;
 
 		PaintBackground(hdcMem, 0, 0, width, m_nLineHeight);
-		if (m_model)
-		{
-			PaintText(hdcMem, m_model->GetString(i), 0, 0, hrgnUpdate);
-		}
+		if (m_model && i < m_model->GetSize())
+			PaintText(hdcMem, m_model->GetIndex(i), 0, 0, hrgnUpdate);
 
 		// transfer to screen 
 		BitBlt(ps.hdc, 0, sy, width, m_nLineHeight, hdcMem, 0, 0, SRCCOPY);
@@ -133,12 +119,6 @@ LRESULT TextView::OnMouseActivate(HWND hwndTop, UINT nHitTest, UINT nMessage)con
 }
 
 
-const TCHAR* TextView::GetTextViewClassName()
-{
-	static auto name = _T("TextView");
-	return name;
-}
-
 void TextView::PaintBackground(HDC hdc, int x, int y, int width, long height)const
 {
 	const RECT rect = { x, y, x + width, y + height };
@@ -148,7 +128,7 @@ void TextView::PaintBackground(HDC hdc, int x, int y, int width, long height)con
 	//SetBkColor(hdc, fill);
 }
 
-void TextView::PaintText(HDC hdc, const std::unique_ptr<const IStringIndex>& line, int x, int y, HRGN region)const
+void TextView::PaintText(HDC hdc, const std::unique_ptr<const IListIndex>& line, int x, int y, HRGN region)const
 {
 	if (line && line->IsValid())
 	{
@@ -160,7 +140,7 @@ void TextView::PaintText(HDC hdc, const std::unique_ptr<const IStringIndex>& lin
 
 		SetBkMode(hdc, TRANSPARENT);
 		SetTextAlign(hdc, TA_LEFT);
-		const auto& str = line->GetLine();
+		const auto& str = line->ToString();
 
 		//SIZE  sz;
 		//GetTextExtentPoint32(hdc, str.c_str(), str.length(), &sz);
