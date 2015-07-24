@@ -9,17 +9,28 @@ namespace kofax
 
 TextView::TextView(HWND hwndParent)	
 	: m_hWnd(hwndParent)
-	, m_backgroundColor(RGB(128,128,128))
-	, m_textColor(RGB(0,0,0))
-	, m_hFont(static_cast<HFONT>(GetStockObject(DEFAULT_GUI_FONT)))
 {
-	OnSetFont();
 }
 
 void TextView::SetModel(const std::shared_ptr<IListModel>& model)
 {
 	if (model)	{
 		m_model = model;
+		UpdateView();
+	} else {
+		assert(false);
+	}
+}
+
+void TextView::SetStyle(IStyleView* const style)
+{
+	if (style) {
+		m_defaultStyle.reset(style);
+		auto hdc = GetDC(m_hWnd);
+
+		m_defaultStyle->GetFontMetrics(hdc, m_nFontWidth, m_nLineHeight);
+
+		ReleaseDC(m_hWnd, hdc);
 		UpdateView();
 	} else {
 		assert(false);
@@ -54,9 +65,9 @@ LRESULT TextView::OnPaint()
 		auto sy = i * m_nLineHeight;
 		auto width = rect.right - rect.left;
 
-		PaintBackground(hdcMem, 0, 0, width, m_nLineHeight);
+		m_defaultStyle->PaintBackground(hdcMem, width, m_nLineHeight);
 		if (m_model && i < m_model->GetSize())
-			PaintText(hdcMem, m_model->GetIndex(i), 0, 0, hrgnUpdate);
+			PaintText(hdcMem, m_model->GetIndex(i));
 
 		// transfer to screen 
 		BitBlt(ps.hdc, 0, sy, width, m_nLineHeight, hdcMem, 0, 0, SRCCOPY);
@@ -85,26 +96,6 @@ void TextView::UpdateView()
 	OnSize(0, rect.right, rect.bottom);
 }
 
-LRESULT TextView::OnSetFont()
-{
-
-	auto hdc = GetDC(m_hWnd);
-	auto hOld = SelectObject(hdc, m_hFont);
-
-	TEXTMETRIC tm;
-	GetTextMetrics(hdc, &tm);
-
-	m_nFontHeight = tm.tmHeight;
-	m_nLineHeight = tm.tmHeight + tm.tmExternalLeading;
-	m_nFontWidth = tm.tmAveCharWidth;
-
-	SelectObject(hdc, hOld);
-	ReleaseDC(m_hWnd, hdc);
-
-	UpdateView();
-
-	return 0;
-}
 
 LRESULT TextView::OnSize(UINT nFlags, int width, int height)
 {
@@ -112,44 +103,22 @@ LRESULT TextView::OnSize(UINT nFlags, int width, int height)
 	return 0;
 }
 
-LRESULT TextView::OnMouseActivate(HWND hwndTop, UINT nHitTest, UINT nMessage)const
+LRESULT TextView::OnMouseActivate(HWND hwndTop, UINT nHitTest, UINT nMessage) const
 {
 	SetFocus(m_hWnd);
 	return MA_ACTIVATE;
 }
 
 
-void TextView::PaintBackground(HDC hdc, int x, int y, int width, long height)const
-{
-	const RECT rect = { x, y, x + width, y + height };
-
-	auto fill = SetBkColor(hdc, m_backgroundColor);
-	ExtTextOut(hdc, 0, 0, ETO_OPAQUE, &rect, nullptr, 0, nullptr);
-	//SetBkColor(hdc, fill);
-}
-
-void TextView::PaintText(HDC hdc, const std::unique_ptr<const IListIndex>& line, int x, int y, HRGN region)const
+void TextView::PaintText(HDC hdc, const std::unique_ptr<const IListIndex>& line) const
 {
 	if (line && line->IsValid())
 	{
 		RECT bounds;
-		HRGN hrgnBounds = nullptr;
-
 		GetClientRect(m_hWnd, &bounds);
-		SelectClipRgn(hdc, nullptr);
 
-		SetBkMode(hdc, TRANSPARENT);
-		SetTextAlign(hdc, TA_LEFT);
 		const auto& str = line->ToString();
-
-		//SIZE  sz;
-		//GetTextExtentPoint32(hdc, str.c_str(), str.length(), &sz);
-		//const RECT rc = { x, y, min(x + sz.cx, rect.right), min(y + m_nLineHeight, rect.bottom) };
-
-		ExtTextOut(hdc, x, y, ETO_CLIPPED | ETO_OPAQUE, &bounds, str.c_str(), str.length(), nullptr);
-
-		DeleteObject(hrgnBounds);
-		SelectClipRgn(hdc, nullptr);
+		m_defaultStyle->PaintText(hdc, bounds.right, m_nLineHeight, str.c_str(), str.c_str() + str.length());
 	}
 }
 
@@ -159,9 +128,6 @@ LRESULT TextView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_PAINT:
 		return OnPaint();
-
-	case WM_SETFONT:
-		return OnSetFont(/*reinterpret_cast<HFONT>(wParam)*/);
 
 	case WM_SIZE:
 		return OnSize(wParam, LOWORD(lParam), HIWORD(lParam));

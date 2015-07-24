@@ -9,11 +9,14 @@ namespace kofax
 {
 
 struct IListModel;
+struct IStyleView;
 
 struct IListView
 {
 	virtual LRESULT WndProc(UINT msg, WPARAM wParam, LPARAM lParam) = 0;
 	virtual void SetModel(const std::shared_ptr<IListModel>& model) = 0;
+	virtual void SetStyle(IStyleView* const style) = 0;
+
 	virtual ~IListView() = default;
 
 protected:
