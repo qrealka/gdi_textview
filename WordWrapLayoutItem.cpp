@@ -1,5 +1,4 @@
 #include "WordWrapLayoutItem.h"
-#include "IStackLayoutView.h"
 #include "IStyleView.h"
 
 #include <memory>
@@ -8,7 +7,7 @@
 namespace kofax
 {
 
-ILayoutItem* WordWrapLayoutItem::MakeWordWrappedText(const WordWrapLayout& layout,
+ILayoutItem* WordWrapLayoutItem::MakeWordWrappedText(const IStackLayoutView& layout,
 		const wchar_t* begin, const wchar_t* end, IStyleView* const style)
 {
 	int x, y;

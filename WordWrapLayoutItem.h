@@ -1,7 +1,7 @@
 #ifndef _313F9085_0C6C_46C1_8EB1_F31A4D725310_
 #define _313F9085_0C6C_46C1_8EB1_F31A4D725310_
 
-#include "WordWrapLayout.h"
+#include "IStackLayoutView.h"
 #include "ILayoutItem.h"
 
 namespace kofax
@@ -11,7 +11,7 @@ struct IStackLayoutView;
 class WordWrapLayoutItem : public ILayoutItem
 {
 public:
-	static ILayoutItem* MakeWordWrappedText(const WordWrapLayout& layout,
+	static ILayoutItem* MakeWordWrappedText(const IStackLayoutView& layout,
 		const wchar_t* begin, const wchar_t* end, IStyleView* const style);
 
 	WordWrapLayoutItem(const IStackLayoutView& layout, int x, int y);

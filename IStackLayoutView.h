@@ -13,7 +13,8 @@ struct IStackLayoutView : public IDrawableElement
 {
 	virtual void Clear() = 0;
 	virtual bool ItemPop() = 0;
-	virtual size_t ItemPush(ILayoutItem* const item) = 0;
+	virtual void ItemPush(ILayoutItem* const item) = 0;
+	virtual void GetEndPosition(int& x, int& y) const = 0;
 
 protected:
 	IStackLayoutView() = default;

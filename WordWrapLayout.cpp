@@ -30,20 +30,34 @@ void WordWrapLayout::Clear()
 
 bool WordWrapLayout::ItemPop()
 {
-
 	if (m_items.empty())
 	{
+		m_lastX = m_clientRect.left;
+		m_lastY = m_clientRect.top;
 		return false;
 	}
+
+	RECT rect;
+	m_items.back()->GetClientRect(rect);
+	m_lastY = rect.top;
+	m_lastX = rect.left;
 
 	m_items.pop_back();
 	return true;
 }
 
-size_t WordWrapLayout::ItemPush(ILayoutItem* const item)
+void WordWrapLayout::ItemPush(ILayoutItem* const item)
 {
-	m_items.emplace_back(item);
-	return m_items.size() - 1;
+	if (item)
+	{
+		RECT rect;
+		item->GetClientRect(rect);
+		
+		m_lastY = rect.bottom;
+		m_lastX = rect.right;
+
+		m_items.emplace_back(item);
+	}
 }
 
 HWND WordWrapLayout::GetOwnerWindow() const
