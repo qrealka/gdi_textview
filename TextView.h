@@ -19,7 +19,7 @@ public:
 private:
 	// IDrawableItem
 	HWND GetOwnerWindow() const final override;
-	void SetStyle(IStyleView* const style) final override;
+	void SetStyle(std::shared_ptr<IStyleView>style) final override;
 	const std::shared_ptr<IStyleView>& GetStyle() const final override;
 	void GetClientRect(RECT& rect) const final override;
 	void OnPaint(HDC hdc) final override;

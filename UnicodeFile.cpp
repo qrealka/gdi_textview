@@ -119,6 +119,8 @@ std::shared_ptr<IListModel> UnicodeFile::OpenUnicodeFile(const wchar_t* fileName
 {
 	static const size_t BufferSizeForEncodingDetector = 1024;
 
+	std::ios::sync_with_stdio(false);
+	
 	std::vector<char> buf;
 	buf.reserve(BufferSizeForEncodingDetector);
 	if (!ReadFirstBytes(fileName, BufferSizeForEncodingDetector, std::back_inserter(buf)))
@@ -170,7 +172,7 @@ size_t UnicodeFile::GetSize() const
 	return m_lines.size();
 }
 
-const IListIndex* UnicodeFile::GetIndex(size_t number) const
+IListIndex* UnicodeFile::GetIndex(size_t number) const
 {
 	return number < m_lines.size() 
 		? new LineIndex(shared_from_this(), number) // std::unique_ptr<const IListIndex>(std::make_unique<LineIndex const>(shared_from_this(), number))

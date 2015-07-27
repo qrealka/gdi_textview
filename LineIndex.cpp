@@ -22,6 +22,15 @@ const std::wstring& LineIndex::ToString() const
 	throw std::runtime_error("Access to destroyed model");
 }
 
+bool LineIndex::GetNext()
+{
+	if (auto model = m_ownerModel.lock())
+	{
+		return m_lineNumber++ < model->GetSize() - 1;
+	}
+	return false;
+}
+
 bool LineIndex::IsValid() const
 {
 	if (auto model = m_ownerModel.lock())

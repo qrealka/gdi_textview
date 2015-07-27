@@ -12,17 +12,20 @@ class WordWrapLayoutItem : public ILayoutItem
 {
 public:
 	static ILayoutItem* MakeWordWrappedText(const IStackLayoutView& layout,
-		const wchar_t* begin, const wchar_t* end, IStyleView* const style);
+		const wchar_t* begin, const wchar_t* end, bool newLine,
+		const std::shared_ptr<IStyleView>& style);
 
-	WordWrapLayoutItem(const IStackLayoutView& layout, int x, int y);
+	WordWrapLayoutItem(const IStackLayoutView& layout, bool endOfLine);
 	void Resize();
+
 private:
 	// ILayoutItem
+	void SetTop(int x, int y) final override;
 	void SetDisplayText(const wchar_t* begin, const wchar_t* end) final override;
 
 	// IDrawableElement
 	HWND GetOwnerWindow() const final override;
-	void SetStyle(IStyleView* const style) final override;
+	void SetStyle(std::shared_ptr<IStyleView>style) final override;
 	const std::shared_ptr<IStyleView>& GetStyle() const final override;
 	void GetClientRect(RECT& rect) const final override;
 	void OnPaint(HDC hdc) final override;
@@ -35,6 +38,7 @@ private:
 	std::shared_ptr<IStyleView> m_style;
 	const wchar_t* m_displayText;
 	size_t m_displayTextLength;
+	bool m_EOL;
 };
 }
 

@@ -16,11 +16,6 @@ WordWrapLayout::WordWrapLayout(const IDrawableElement& owner, const RECT& client
 {
 }
 
-void WordWrapLayout::GetEndPosition(int& x, int& y) const
-{
-	x = m_lastX;
-	y = m_lastY;
-}
 
 void WordWrapLayout::Clear()
 {
@@ -37,12 +32,19 @@ bool WordWrapLayout::ItemPop()
 		return false;
 	}
 
+	m_items.pop_back();
+	if (m_items.empty())
+	{
+		m_lastX = m_clientRect.left;
+		m_lastY = m_clientRect.top;
+		return true;
+	}
+
 	RECT rect;
 	m_items.back()->GetClientRect(rect);
-	m_lastY = rect.top;
-	m_lastX = rect.left;
+	m_lastY = rect.bottom;
+	m_lastX = rect.right;
 
-	m_items.pop_back();
 	return true;
 }
 
@@ -50,9 +52,25 @@ void WordWrapLayout::ItemPush(ILayoutItem* const item)
 {
 	if (item)
 	{
+		item->SetTop(m_lastX, m_lastY);
+		item->OnWindowResize(m_clientRect.right - m_clientRect.left,
+			m_clientRect.bottom - m_clientRect.top);
+
 		RECT rect;
 		item->GetClientRect(rect);
-		
+
+		long fontHeight, fontWidth;
+		auto hdc = GetDC(nullptr);
+		item->GetStyle()->GetFontMetrics(hdc, fontWidth, fontHeight);
+		ReleaseDC(nullptr, hdc);
+
+		if (fontWidth > (m_clientRect.right - rect.right))
+		{
+			item->SetTop(m_clientRect.left, rect.bottom);
+			item->OnWindowResize(m_clientRect.right - m_clientRect.left,
+				m_clientRect.bottom - m_clientRect.top);
+		}
+
 		m_lastY = rect.bottom;
 		m_lastX = rect.right;
 
@@ -65,10 +83,10 @@ HWND WordWrapLayout::GetOwnerWindow() const
 	return m_owner;
 }
 
-void WordWrapLayout::SetStyle(IStyleView* const style)
+void WordWrapLayout::SetStyle(std::shared_ptr<IStyleView>style)
 {
 	if (style)
-		m_style.reset(style);
+		m_style = std::move(style);
 }
 
 const std::shared_ptr<IStyleView>& WordWrapLayout::GetStyle() const

@@ -11,6 +11,7 @@ struct IListModel;
 struct IListIndex
 {
 	virtual const std::wstring& ToString() const = 0;
+	virtual bool GetNext() = 0;
 	virtual bool IsValid() const = 0;
 
 	virtual ~IListIndex() = default;

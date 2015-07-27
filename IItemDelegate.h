@@ -8,7 +8,7 @@ struct IListIndex;
 
 struct IItemDelegate
 {
-	virtual void OnSize(int width, int height, const IListIndex& index) = 0;
+	virtual void SizeHint(int width, int height, IListIndex* index) = 0;
 	virtual ~IItemDelegate() = default;
 
 protected:

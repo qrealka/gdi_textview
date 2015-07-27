@@ -31,10 +31,10 @@ HWND TextView::GetOwnerWindow() const
 	return m_hWnd;
 }
 
-void TextView::SetStyle(IStyleView* const style)
+void TextView::SetStyle(std::shared_ptr<IStyleView>style)
 {
 	if (style)
-		m_style.reset(style);
+		m_style = std::move(style);
 }
 
 const std::shared_ptr<IStyleView>& TextView::GetStyle() const

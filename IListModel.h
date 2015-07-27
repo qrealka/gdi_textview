@@ -11,7 +11,7 @@ struct IListIndex;
 struct IListModel
 {
 	virtual size_t GetSize() const = 0;
-	virtual const IListIndex* GetIndex(size_t number) const = 0;
+	virtual IListIndex* GetIndex(size_t number) const = 0;
 
 	virtual ~IListModel() = default;
 

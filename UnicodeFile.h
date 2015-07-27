@@ -24,7 +24,7 @@ namespace kofax
 		UnicodeFile(const UnicodeFile&) = delete;
 		UnicodeFile& operator=(const UnicodeFile&) = delete;
 
-		const IListIndex* GetIndex(size_t number) const final override; // IListModel
+		IListIndex* GetIndex(size_t number) const override final; // IListModel
 
 	private:
 		std::vector<std::wstring> m_lines;

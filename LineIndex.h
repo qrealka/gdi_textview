@@ -18,11 +18,12 @@ public:
 
 private:
 	const std::wstring& ToString() const final override;
+	bool GetNext() final override;
 	bool IsValid() const final override;
 
 private:
 	std::weak_ptr<const UnicodeFile> m_ownerModel;
-	const size_t m_lineNumber;
+	size_t m_lineNumber;
 };
 
 }

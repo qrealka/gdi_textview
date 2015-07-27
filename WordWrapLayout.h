@@ -14,7 +14,7 @@ public:
 
 private:
 	// IStackLayoutView
-	void GetEndPosition(int& x, int& y) const final override;
+	//void GetEndPosition(int& x, int& y) const final override;
 	void Clear() final override;
 	bool ItemPop() final override;
 	void ItemPush(ILayoutItem* const item) final override;
@@ -22,7 +22,7 @@ private:
 	// IDrawableElement
 	HWND GetOwnerWindow() const final override;
 		
-	void SetStyle(IStyleView* const style) final override;
+	void SetStyle(std::shared_ptr<IStyleView>style) final override;
 	const std::shared_ptr<IStyleView>& GetStyle() const final override;
 
 	void GetClientRect(RECT& rect) const final override;

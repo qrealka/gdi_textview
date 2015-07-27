@@ -15,7 +15,7 @@ struct IDrawableElement
 public:
 	virtual HWND GetOwnerWindow() const = 0;
 
-	virtual void SetStyle(IStyleView* const style) = 0;
+	virtual void SetStyle(std::shared_ptr<IStyleView>style) = 0;
 	virtual const std::shared_ptr<IStyleView>& GetStyle() const = 0;
 
 	virtual void GetClientRect(RECT& rect) const = 0;
