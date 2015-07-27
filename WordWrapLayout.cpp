@@ -1,5 +1,6 @@
 #include "WordWrapLayout.h"
 #include "ILayoutItem.h"
+#include "IStyleView.h"
 
 #include <algorithm>
 

@@ -1,5 +1,4 @@
 #include "TextViewStyle.h"
-#include <assert.h>
 
 namespace 
 {
@@ -29,8 +28,16 @@ HFONT EasyCreateFont(wchar_t *szFace, int pointSize)
 namespace kofax
 {
 
+TextViewStyle::TextViewStyle(HWND)
+	: m_defaultStyle(true)
+	, m_font(static_cast<HFONT>(GetStockObject(ANSI_FIXED_FONT)))
+{
+	
+}
+
 TextViewStyle::TextViewStyle(wchar_t* fontName, int fontSize, COLORREF fontColor, COLORREF background)
-	: m_font(EasyCreateFont(fontName, fontSize))
+	: m_defaultStyle(false)
+	, m_font(EasyCreateFont(fontName, fontSize))
 	, m_foregroundColor(fontColor)
 	, m_backgroundColor(background)
 {
@@ -39,39 +46,51 @@ TextViewStyle::TextViewStyle(wchar_t* fontName, int fontSize, COLORREF fontColor
 
 TextViewStyle::~TextViewStyle()
 {
-	DeleteObject(m_font);
+	if (!m_defaultStyle)
+		DeleteObject(m_font);
 }
 
-SIZE TextViewStyle::SizeText(HDC hdc, const wchar_t* begin, const wchar_t* end) const
+void TextViewStyle::SizeText(HDC hdc, RECT& rect, const wchar_t* text, size_t textSize) const
 {
-	assert(begin && end);
-	assert(begin <= end);
+	if (text == nullptr || !textSize)
+	{
+		SetRectEmpty(&rect);
+		return;
+	}
 
-	const auto length = end - begin;
+	RECT rcCalc = { 0, 0, rect.right, rect.bottom };
+
 	auto hOld = SelectObject(hdc, m_font);
-	SIZE  sz;
-	GetTextExtentPoint32(hdc, begin, length, &sz);
+
+	DRAWTEXTPARAMS params = { sizeof(DRAWTEXTPARAMS), 4, 0, 0, textSize };
+	DrawTextEx(hdc, const_cast<wchar_t*>(text), -1, &rcCalc, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL | DT_CALCRECT, &params);
+
 	SelectObject(hdc, hOld);
-
-	return sz;
 }
 
-void TextViewStyle::PaintText(HDC hdc, int width, long height, const wchar_t* begin, const wchar_t* end) const
+void TextViewStyle::PaintText(HDC hdc, const RECT& rect, const wchar_t* text, size_t textSize) const
 {
-	assert(begin && end);
-	assert(begin <= end);
+	if (text == nullptr || !textSize)
+		return;
 
-	const auto length = end - begin;
 	auto hOld = SelectObject(hdc, m_font);
 
-	SetBkMode(hdc, TRANSPARENT);
-	SetTextAlign(hdc, TA_LEFT);
+	if (!m_defaultStyle)
+	{
+		SetBkMode(hdc, TRANSPARENT);
+		SetTextAlign(hdc, TA_LEFT); // don't use TA_UPDATECP   
+		SetTextColor(hdc, m_foregroundColor);
+	}
 
-	SIZE  sz;
-	GetTextExtentPoint32(hdc, begin, length, &sz);
-	const RECT bounds = { 0, 0, min(sz.cx, width), min(sz.cy, height) };
+	auto clientRect = rect;
+	SizeText(hdc, clientRect, text, textSize);
 
-	ExtTextOut(hdc, 0, 0, ETO_CLIPPED | ETO_OPAQUE, &bounds, begin, length, nullptr);
+	//clientRect.left = rect.left;
+	//clientRect.right = rect.right;
+	
+	DRAWTEXTPARAMS params = { sizeof(DRAWTEXTPARAMS), 4, 0, 0, textSize };
+	DrawTextEx(hdc, const_cast<wchar_t*>(text), -1, &clientRect, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL, &params);
+
 	SelectObject(hdc, hOld);
 }
 
@@ -79,7 +98,8 @@ void TextViewStyle::PaintBackground(HDC hdc, int width, long height) const
 {
 	const RECT rect = { 0, 0, width, height };
 
-	auto fill = SetBkColor(hdc, m_backgroundColor);
+	if (!m_defaultStyle)
+		SetBkColor(hdc, m_backgroundColor);
 	ExtTextOut(hdc, 0, 0, ETO_OPAQUE, &rect, nullptr, 0, nullptr);
 	//SetBkColor(hdc, fill);
 }

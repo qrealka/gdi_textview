@@ -2,14 +2,27 @@
 #include "IListModel.h"
 #include "IListIndex.h"
 #include "IStackLayoutView.h"
+#include "TextViewStyle.h"
 #include <string>
 #include <assert.h>
+
+namespace 
+{
+
+wchar_t testText[] = LR"(Lorem_ipsum_dolor_sit_amet,_consectetur_adipiscing_elit._Vestibulum_eleifend_ipsum_in_nibh scelerisque ultrices. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Sed eget mi in dui cursus maximus. Duis mattis iaculis turpis at fermentum. Phasellus nec ipsum nec purus tincidunt pellentesque et ut metus. Sed bibendum viverra dui, sed dignissim elit dignissim id. Suspendisse eleifend ex id rutrum ultricies. Vestibulum molestie semper quam vitae pretium. Integer a condimentum odio.
+
+	Sed ullamcorper finibus augue id aliquam.Ut pulvinar eget diam in lacinia.Quisque sem mauris, molestie id arcu sed, tempus viverra nulla.Mauris venenatis.
+
+	Generated 2 paragraphs, 100 words, 682 bytes of Lorem Ipsum)";
+
+}
 
 namespace kofax
 {
 
 TextView::TextView(HWND hwndParent)	
 	: m_hWnd(hwndParent)
+	, m_style(new TextViewStyle(hwndParent)) // use default style
 {
 }
 
@@ -41,7 +54,7 @@ void TextView::OnPaint(HDC hdc)
 
 void TextView::OnWindowResize(int width, int height)
 {
-	m_layoutText->OnWindowResize(width, height);
+	//m_layoutText->OnWindowResize(width, height);
 	RefreshWindow();
 }
 
@@ -64,21 +77,6 @@ void TextView::SetLayout(IStackLayoutView* const layout)
 	}
 }
 
-/*void TextView::SetStyle(IStyleView* const style)
-{
-	if (style) {
-		m_defaultStyle.reset(style);
-		auto hdc = GetDC(m_hWnd);
-
-		m_defaultStyle->GetFontMetrics(hdc, m_nFontWidth, m_nLineHeight);
-
-		ReleaseDC(m_hWnd, hdc);
-		UpdateView();
-	} else {
-		assert(false);
-	}
-}*/
-
 LONG TextView::GetLeftMargin()
 {
 	return 5;
@@ -89,10 +87,36 @@ LRESULT TextView::OnPaint()
 {
 	//auto hrgnUpdate = CreateRectRgn(0, 0, 1, 1);
 	//GetUpdateRgn(m_hWnd, hrgnUpdate, FALSE);
+	RECT rc;
+	::GetClientRect(m_hWnd, &rc);
 
 	PAINTSTRUCT ps;
 	BeginPaint(m_hWnd, &ps);
-	OnPaint(ps.hdc);
+
+	SetBkColor(ps.hdc, RGB(192, 192, 192));
+	ExtTextOut(ps.hdc, 0, 0, ETO_OPAQUE, &rc, nullptr, 0, nullptr);
+
+	SetBkMode(ps.hdc, TRANSPARENT);
+	// don't use SetTextAlign && TA_UPDATECP
+	//SetTextAlign(ps.hdc, TA_LEFT);
+	SetTextColor(ps.hdc, RGB(0, 0, 0));
+
+	RECT rcCalc;
+	//
+	SetRectEmpty(&rcCalc);
+	rcCalc.bottom = rc.bottom;
+	rcCalc.right = rc.right;
+	DRAWTEXTPARAMS params = { sizeof(DRAWTEXTPARAMS), 4, 0, 0, sizeof(testText)/sizeof(wchar_t) - 1  };
+	DrawTextEx(ps.hdc, testText, -1, &rcCalc, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL | DT_CALCRECT, &params);
+
+	rcCalc.left = rc.left;
+	rcCalc.right = rc.right;
+	//rcCalc.bottom = rc.bottom;
+
+	DrawTextEx(ps.hdc, testText, -1, &rcCalc, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL, &params);
+
+	//OnPaint(ps.hdc);
+	
 	// current region
 	/*RECT rect;
 	GetClientRect(m_hWnd, &rect);
@@ -136,7 +160,7 @@ void TextView::UpdateView()
 	RECT rect;
 	::GetClientRect(m_hWnd, &rect);
 
-	OnWindowResize(rect.right, rect.bottom);
+	OnWindowResize(rect.right - rect.left, rect.bottom - rect.top);
 }
 
 

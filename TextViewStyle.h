@@ -9,16 +9,18 @@ namespace kofax
 class TextViewStyle : public IStyleView
 {
 public:
+	explicit TextViewStyle(HWND);
 	TextViewStyle(wchar_t* fontName, int fontSize, COLORREF fontColor, COLORREF background);
 	~TextViewStyle();
 
 private:
-	SIZE SizeText(HDC hdc, const wchar_t* begin, const wchar_t* end) const final override;
-	void PaintText(HDC hdc, int width, long height, const wchar_t* begin, const wchar_t* end) const final override;
+	void SizeText(HDC hdc, RECT& rect, const wchar_t* text, size_t textSize) const override final;
+	void PaintText(HDC hdc, const RECT & rect, const wchar_t* text, size_t textSize) const final override;
 	void PaintBackground(HDC hdc, int width, long height) const final override;
 	void GetFontMetrics(HDC hdc, long& width, long& height) const final override;
 
 private:
+	bool m_defaultStyle;
 	HFONT m_font;
 	COLORREF m_foregroundColor;
 	COLORREF m_backgroundColor;

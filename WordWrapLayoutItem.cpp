@@ -13,10 +13,13 @@ ILayoutItem* WordWrapLayoutItem::MakeWordWrappedText(const WordWrapLayout& layou
 {
 	int x, y;
 	layout.GetEndPosition(x, y);
+
 	auto item = std::make_unique<WordWrapLayoutItem>(layout, x, y);
+
 	item->SetStyle(style);
 	item->SetDisplayText(begin, end);
 	item->Resize();
+	
 	return item.release();
 }
 
@@ -31,12 +34,16 @@ WordWrapLayoutItem::WordWrapLayoutItem(const IStackLayoutView& layout, int x, in
 
 void WordWrapLayoutItem::Resize()
 {
-	auto hdc = GetDC(m_owner);
+	if (!m_style)
+	{
+		m_clienRect.right = m_clienRect.left;
+		m_clienRect.bottom = m_clienRect.top;
+		return;
+	}
 
-	const auto size = m_style->SizeText(hdc, m_displayText, m_displayText + m_displayTextLength);
+	auto hdc = GetDC(nullptr);
+	m_style->SizeText(hdc, m_clienRect, m_displayText, m_displayTextLength);
 	ReleaseDC(nullptr, hdc);
-	//m_clienRect.right =
-	// TODO: wrap  word characters in vertical rectange
 }
 
 void WordWrapLayoutItem::SetDisplayText(const wchar_t* begin, const wchar_t* end)
@@ -77,6 +84,11 @@ void WordWrapLayoutItem::GetClientRect(RECT& rect) const
 
 void WordWrapLayoutItem::OnPaint(HDC hdc)
 {
+	if (m_style)
+	{
+		m_style->PaintBackground(hdc, m_ownerRect.right, m_clienRect.bottom);
+		m_style->PaintText(hdc, m_clienRect, m_displayText, m_displayTextLength);
+	}
 }
 
 void WordWrapLayoutItem::OnWindowResize(int width, int height)
