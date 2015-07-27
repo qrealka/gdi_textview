@@ -3,6 +3,7 @@
 
 #include "IListModel.h"
 #include <vector>
+#include <memory>
 
 namespace kofax
 {
@@ -23,7 +24,7 @@ namespace kofax
 		UnicodeFile(const UnicodeFile&) = delete;
 		UnicodeFile& operator=(const UnicodeFile&) = delete;
 
-		std::unique_ptr<const IListIndex> GetIndex(size_t number) const final override; // IListModel
+		const IListIndex* GetIndex(size_t number) const final override; // IListModel
 
 	private:
 		std::vector<std::wstring> m_lines;

@@ -13,6 +13,7 @@ public:
 	~TextViewStyle();
 
 private:
+	SIZE SizeText(HDC hdc, const wchar_t* begin, const wchar_t* end) const final override;
 	void PaintText(HDC hdc, int width, long height, const wchar_t* begin, const wchar_t* end) const final override;
 	void PaintBackground(HDC hdc, int width, long height) const final override;
 	void GetFontMetrics(HDC hdc, long& width, long& height) const final override;

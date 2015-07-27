@@ -170,10 +170,10 @@ size_t UnicodeFile::GetSize() const
 	return m_lines.size();
 }
 
-std::unique_ptr<const IListIndex> UnicodeFile::GetIndex(size_t number) const
+const IListIndex* UnicodeFile::GetIndex(size_t number) const
 {
 	return number < m_lines.size() 
-		? std::unique_ptr<const IListIndex>(std::make_unique<LineIndex const>(shared_from_this(), number))
+		? new LineIndex(shared_from_this(), number) // std::unique_ptr<const IListIndex>(std::make_unique<LineIndex const>(shared_from_this(), number))
 		: nullptr;
 }
 

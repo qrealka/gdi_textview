@@ -42,6 +42,20 @@ TextViewStyle::~TextViewStyle()
 	DeleteObject(m_font);
 }
 
+SIZE TextViewStyle::SizeText(HDC hdc, const wchar_t* begin, const wchar_t* end) const
+{
+	assert(begin && end);
+	assert(begin <= end);
+
+	const auto length = end - begin;
+	auto hOld = SelectObject(hdc, m_font);
+	SIZE  sz;
+	GetTextExtentPoint32(hdc, begin, length, &sz);
+	SelectObject(hdc, hOld);
+
+	return sz;
+}
+
 void TextViewStyle::PaintText(HDC hdc, int width, long height, const wchar_t* begin, const wchar_t* end) const
 {
 	assert(begin && end);

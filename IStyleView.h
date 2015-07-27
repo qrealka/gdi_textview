@@ -9,6 +9,7 @@ namespace kofax
 
 struct IStyleView
 {
+	virtual SIZE SizeText(HDC hdc, const wchar_t* begin, const wchar_t* end) const = 0;
 	virtual void PaintText(HDC hdc, int width, long height, const wchar_t* begin, const wchar_t* end) const = 0;
 	virtual void PaintBackground(HDC hdc, int width, long height) const = 0;
 	virtual void GetFontMetrics(HDC hdc, long& width, long& height) const = 0;

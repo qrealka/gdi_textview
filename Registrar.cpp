@@ -27,9 +27,9 @@ LRESULT WINAPI TextViewWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 			}
 			return FALSE;
 		}
-		catch (const std::exception& err)
+		catch (const std::exception&)
 		{
-			assert(false && err.what());
+			assert(false);
 			::MessageBox(hwnd, _T("Cannot create application controller!"), _T("Error"), MB_ICONHAND | MB_OK);
 			return FALSE;
 		}
