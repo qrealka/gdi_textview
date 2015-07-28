@@ -60,12 +60,7 @@ void WordWrapLayout::ItemPush(ILayoutItem* const item)
 		RECT rect;
 		item->GetClientRect(rect);
 
-		long fontHeight, fontWidth;
-		auto hdc = GetDC(nullptr);
-		item->GetStyle()->GetFontMetrics(hdc, fontWidth, fontHeight);
-		ReleaseDC(nullptr, hdc);
-
-		if (fontWidth > (m_clientRect.right - rect.right))
+		if (rect.right > m_clientRect.right)
 		{
 			item->SetTop(m_clientRect.left, rect.bottom);
 			item->OnWindowResize(m_clientRect.right - m_clientRect.left,
@@ -77,6 +72,10 @@ void WordWrapLayout::ItemPush(ILayoutItem* const item)
 
 		m_items.emplace_back(item);
 	}
+}
+
+void WordWrapLayout::AddSpaces(ILayoutItem* const item)
+{
 }
 
 HWND WordWrapLayout::GetOwnerWindow() const
@@ -102,6 +101,8 @@ void WordWrapLayout::GetClientRect(RECT& rect) const
 
 void WordWrapLayout::OnPaint(HDC hdc)
 {
+	m_style->PaintBackground(hdc, m_clientRect.right, m_clientRect.bottom);
+
 	std::find_if(cbegin(m_items), cend(m_items), [&hdc, this](const std::unique_ptr<ILayoutItem>& item)
 	{
 		RECT rect;

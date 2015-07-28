@@ -38,15 +38,21 @@ void WordItemDelegate::AddLineToLayout(const std::unique_ptr<IListIndex>& textIt
 
 		if (isSpace != isWordSpaces || isEOL)
 		{
-			if (!isWordSpaces) ++wordCounter;
-			if (wordCounter == 3)
+			if (isWordSpaces)
 			{
-				layout.ItemPush(WordWrapLayoutItem::MakeWordWrappedText(layout, wordBegin, it, isEOL, m_wordStyleTwo));
-				wordCounter = 0;
+				layout.AddSpaces(WordWrapLayoutItem::MakeWordWrappedText(layout, wordBegin, it, isEOL, m_wordStyleOne));
 			}
 			else
 			{
-				layout.ItemPush(WordWrapLayoutItem::MakeWordWrappedText(layout, wordBegin, it, isEOL, m_wordStyleOne));
+				if (++wordCounter == 3)
+				{
+					layout.ItemPush(WordWrapLayoutItem::MakeWordWrappedText(layout, wordBegin, it, isEOL, m_wordStyleTwo));
+					wordCounter = 0;
+				}
+				else
+				{
+					layout.ItemPush(WordWrapLayoutItem::MakeWordWrappedText(layout, wordBegin, it, isEOL, m_wordStyleOne));
+				}
 			}
 
 			if (isEOL)

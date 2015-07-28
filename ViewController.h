@@ -11,6 +11,7 @@ namespace kofax
 {
 
 struct IListModel;
+struct IStyleView;
 
 class ViewController
 {
@@ -23,6 +24,7 @@ public:
 private:
 	std::unique_ptr<IListView> m_view;
 	std::shared_ptr<IListModel> m_model;
+	std::shared_ptr<IStyleView> m_style;
 };
 
 }

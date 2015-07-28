@@ -41,6 +41,7 @@ void WordWrapLayoutItem::Resize()
 	m_clienRect.right = m_ownerRect.right;
 
 	auto hdc = GetDC(nullptr);
+	//m_style->GetFontMetrics(hdc, fontWidth, fontHeight);
 	m_style->SizeText(hdc, m_clienRect, m_displayText, m_displayTextLength);
 	ReleaseDC(nullptr, hdc);
 

@@ -64,6 +64,8 @@ void TextViewStyle::SizeText(HDC hdc, RECT& rect, const wchar_t* text, size_t te
 
 	DRAWTEXTPARAMS params = { sizeof(DRAWTEXTPARAMS), 4, 0, 0, textSize };
 	DrawTextEx(hdc, const_cast<wchar_t*>(text), textSize, &rcCalc, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL | DT_CALCRECT, &params);
+	rect.right = rect.left + rcCalc.right;
+	rect.bottom = rect.top + rcCalc.bottom;
 
 	SelectObject(hdc, hOld);
 }

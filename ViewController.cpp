@@ -11,7 +11,10 @@ namespace kofax
 
 ViewController::ViewController(HWND hwndParent, const wchar_t* fileName)
 	: m_view(new TextView(hwndParent))
+	, m_style(new TextViewStyle(L"Arial", 19, RGB(0, 0, 0), RGB(128, 128, 128)))
 {
+	m_view->SetStyle(m_style);
+
 	std::locale locale;
 	m_model = UnicodeFile::OpenUnicodeFile(fileName, locale);
 	assert(m_model);

@@ -20,6 +20,7 @@ private:
 	void Clear() final override;
 	bool ItemPop() final override;
 	void ItemPush(ILayoutItem* const item) final override;
+	void AddSpaces(ILayoutItem* const item) final override;
 
 	// IDrawableElement
 	HWND GetOwnerWindow() const final override;
