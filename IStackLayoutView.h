@@ -7,14 +7,14 @@ namespace kofax
 {
 
 struct IStyleView;
-struct ILayoutItem;
+struct AbstractLayoutItem;
 
 struct IStackLayoutView : public IDrawableElement
 {
 	virtual void Clear() = 0;
 	virtual bool ItemPop() = 0;
-	virtual void ItemPush(ILayoutItem* const item) = 0;
-	virtual void AddSpaces(ILayoutItem* const item) = 0;
+	virtual void ItemPush(AbstractLayoutItem* const item) = 0;
+	virtual void AddSpaces(AbstractLayoutItem* const item) = 0;
 
 protected:
 	IStackLayoutView() = default;

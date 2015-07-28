@@ -3,6 +3,8 @@
 namespace 
 {
 
+const UINT TextRenderParams = DT_LEFT | DT_BOTTOM | DT_EXTERNALLEADING | DT_WORDBREAK | DT_EDITCONTROL | DT_EXPANDTABS;
+
 int PointsToLogical(int pointSize)
 {
 	auto hdc = GetDC(nullptr);
@@ -63,7 +65,7 @@ void TextViewStyle::SizeText(HDC hdc, RECT& rect, const wchar_t* text, size_t te
 	auto hOld = SelectObject(hdc, m_font);
 
 	DRAWTEXTPARAMS params = { sizeof(DRAWTEXTPARAMS), 4, 0, 0, textSize };
-	DrawTextEx(hdc, const_cast<wchar_t*>(text), textSize, &rcCalc, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL | DT_CALCRECT, &params);
+	DrawTextEx(hdc, const_cast<wchar_t*>(text), textSize, &rcCalc, TextRenderParams | DT_CALCRECT, &params);
 	rect.right = rect.left + rcCalc.right;
 	rect.bottom = rect.top + rcCalc.bottom;
 
@@ -91,15 +93,13 @@ void TextViewStyle::PaintText(HDC hdc, const RECT& rect, const wchar_t* text, si
 	//clientRect.right = rect.right;
 	
 	DRAWTEXTPARAMS params = { sizeof(DRAWTEXTPARAMS), 4, 0, 0, textSize };
-	DrawTextEx(hdc, const_cast<wchar_t*>(text), textSize, &clientRect, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL, &params);
+	DrawTextEx(hdc, const_cast<wchar_t*>(text), textSize, &clientRect, TextRenderParams, &params);
 
 	SelectObject(hdc, hOld);
 }
 
-void TextViewStyle::PaintBackground(HDC hdc, int width, long height) const
+void TextViewStyle::PaintBackground(HDC hdc, const RECT& rect) const
 {
-	const RECT rect = { 0, 0, width, height };
-
 	if (!m_defaultStyle)
 		SetBkColor(hdc, m_backgroundColor);
 	ExtTextOut(hdc, 0, 0, ETO_OPAQUE, &rect, nullptr, 0, nullptr);

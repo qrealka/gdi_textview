@@ -49,7 +49,7 @@ bool WordWrapLayout::ItemPop()
 	return true;
 }
 
-void WordWrapLayout::ItemPush(ILayoutItem* const item)
+void WordWrapLayout::ItemPush(AbstractLayoutItem* const item)
 {
 	if (item)
 	{
@@ -60,22 +60,29 @@ void WordWrapLayout::ItemPush(ILayoutItem* const item)
 		RECT rect;
 		item->GetClientRect(rect);
 
-		if (rect.right > m_clientRect.right)
-		{
-			item->SetTop(m_clientRect.left, rect.bottom);
-			item->OnWindowResize(m_clientRect.right - m_clientRect.left,
-				m_clientRect.bottom - m_clientRect.top);
-		}
-
-		m_lastY = rect.bottom;
+		m_lastY = rect.top;
 		m_lastX = rect.right;
 
 		m_items.emplace_back(item);
 	}
 }
 
-void WordWrapLayout::AddSpaces(ILayoutItem* const item)
+void WordWrapLayout::AddSpaces(AbstractLayoutItem* const item)
 {
+	if (item)
+	{
+		item->SetTop(m_lastX, m_lastY);
+		item->OnWindowResize(m_clientRect.right - m_clientRect.left,
+			m_clientRect.bottom - m_clientRect.top);
+
+		RECT rect;
+		item->GetClientRect(rect);
+
+		m_lastY = rect.top;
+		m_lastX = rect.right;
+
+		m_items.emplace_back(item);
+	}
 }
 
 HWND WordWrapLayout::GetOwnerWindow() const
@@ -101,9 +108,9 @@ void WordWrapLayout::GetClientRect(RECT& rect) const
 
 void WordWrapLayout::OnPaint(HDC hdc)
 {
-	m_style->PaintBackground(hdc, m_clientRect.right, m_clientRect.bottom);
+	m_style->PaintBackground(hdc, m_clientRect);
 
-	std::find_if(cbegin(m_items), cend(m_items), [&hdc, this](const std::unique_ptr<ILayoutItem>& item)
+	std::find_if(cbegin(m_items), cend(m_items), [&hdc, this](const std::unique_ptr<AbstractLayoutItem>& item)
 	{
 		RECT rect;
 		item->GetClientRect(rect);

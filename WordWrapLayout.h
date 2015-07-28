@@ -19,8 +19,8 @@ private:
 	// IStackLayoutView
 	void Clear() final override;
 	bool ItemPop() final override;
-	void ItemPush(ILayoutItem* const item) final override;
-	void AddSpaces(ILayoutItem* const item) final override;
+	void ItemPush(AbstractLayoutItem* const item) final override;
+	void AddSpaces(AbstractLayoutItem* const item) final override;
 
 	// IDrawableElement
 	HWND GetOwnerWindow() const final override;
@@ -33,7 +33,7 @@ private:
 	void OnWindowResize(int width, int height) final override;
 
 private:
-	typedef std::unique_ptr<ILayoutItem> LayoutItem;
+	typedef std::unique_ptr<AbstractLayoutItem> LayoutItem;
 	typedef std::list<LayoutItem> StackItems;
 
 	HWND m_owner;

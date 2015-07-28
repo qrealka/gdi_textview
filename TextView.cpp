@@ -1,8 +1,6 @@
 #include "TextView.h"
-#include "IListModel.h"
 #include "IStackLayoutView.h"
-#include "TextViewStyle.h"
-#include "WordItemDelegate.h"
+#include "IStyleView.h"
 
 namespace 
 {
@@ -19,31 +17,10 @@ namespace kofax
 {
 
 TextView::TextView(HWND hwndParent)	
-	: m_hWnd(hwndParent)
-	, m_style(new TextViewStyle(hwndParent)) // use default style
+	: AbstractView(hwndParent)
 {
-
 }
 
-HWND TextView::GetOwnerWindow() const
-{
-	return m_hWnd;
-}
-
-void TextView::SetStyle(std::shared_ptr<IStyleView>style)
-{
-	m_style = std::move(style);
-}
-
-const std::shared_ptr<IStyleView>& TextView::GetStyle() const
-{
-	return m_style;
-}
-
-void TextView::GetClientRect(RECT& rect) const
-{
-	::GetClientRect(m_hWnd, &rect);
-}
 
 void TextView::OnPaint(HDC hdc)
 {
@@ -55,7 +32,7 @@ void TextView::OnPaint(HDC hdc)
 	{
 		RECT rc;
 		::GetClientRect(m_hWnd, &rc);
-		m_style->PaintBackground(hdc, rc.right, rc.bottom);
+		m_style->PaintBackground(hdc, rc);
 	}
 }
 
@@ -118,10 +95,8 @@ void TextView::RefreshWindow() const
 
 void TextView::UpdateView()
 {
-	RECT rect;
-	::GetClientRect(m_hWnd, &rect);
-
-	OnWindowResize(rect.right - rect.left, rect.bottom - rect.top);
+	::GetClientRect(m_hWnd, &m_clientRect);
+	OnWindowResize(m_clientRect.right - m_clientRect.left, m_clientRect.bottom - m_clientRect.top);
 }
 
 
@@ -140,6 +115,7 @@ LRESULT TextView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
 		return OnPaint();
 
 	case WM_SIZE:
+		::GetClientRect(m_hWnd, &m_clientRect);
 		OnWindowResize(LOWORD(lParam), HIWORD(lParam));
 		return 0;
 

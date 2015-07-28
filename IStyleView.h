@@ -11,7 +11,7 @@ struct IStyleView
 {
 	virtual void SizeText(HDC hdc, RECT& rect, const wchar_t* text, size_t textSize) const = 0;
 	virtual void PaintText(HDC hdc, const RECT & rect, const wchar_t* text, size_t textSize) const = 0;
-	virtual void PaintBackground(HDC hdc, int width, long height) const = 0;
+	virtual void PaintBackground(HDC hdc, const RECT & rect) const = 0;
 	virtual void GetFontMetrics(HDC hdc, long& width, long& height) const = 0;
 
 	virtual ~IStyleView() = default;
