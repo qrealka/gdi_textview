@@ -22,6 +22,7 @@ public:
 
 private:
 	std::unique_ptr<IListView> m_view;
+	std::shared_ptr<IListModel> m_model;
 };
 
 }

@@ -24,28 +24,20 @@ private:
 	void GetClientRect(RECT& rect) const final override;
 	void OnPaint(HDC hdc) final override;
 	void OnWindowResize(int width, int height) final override;
+	void UpdateView() final override;
 
 private:
-	void SetModel(const std::shared_ptr<IListModel>& model) final override;
 	void SetLayout(IStackLayoutView* const layout) final override;
 	LRESULT WndProc(UINT msg, WPARAM wParam, LPARAM lParam) final override;
 
-	void PaintText(HDC hdc, std::unique_ptr<const IListIndex> line)const;
-
-	void UpdateView();
 	void RefreshWindow() const;
 
 	LRESULT OnMouseActivate(HWND hwndTop, UINT nHitTest, UINT nMessage)const;
 	LRESULT OnPaint();
 
-	LONG GetLeftMargin();
-
 private:
 	HWND m_hWnd;
-	long m_nLineHeight;
-	long m_nFontWidth;
 	std::shared_ptr<IStyleView> m_style;
-	std::shared_ptr<IListModel> m_model;
 	std::unique_ptr<IStackLayoutView> m_layoutText;
 };
 

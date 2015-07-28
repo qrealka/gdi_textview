@@ -1,10 +1,8 @@
 #include "TextView.h"
 #include "IListModel.h"
-#include "IListIndex.h"
 #include "IStackLayoutView.h"
 #include "TextViewStyle.h"
-#include <string>
-#include <assert.h>
+#include "WordItemDelegate.h"
 
 namespace 
 {
@@ -24,6 +22,7 @@ TextView::TextView(HWND hwndParent)
 	: m_hWnd(hwndParent)
 	, m_style(new TextViewStyle(hwndParent)) // use default style
 {
+
 }
 
 HWND TextView::GetOwnerWindow() const
@@ -33,8 +32,7 @@ HWND TextView::GetOwnerWindow() const
 
 void TextView::SetStyle(std::shared_ptr<IStyleView>style)
 {
-	if (style)
-		m_style = std::move(style);
+	m_style = std::move(style);
 }
 
 const std::shared_ptr<IStyleView>& TextView::GetStyle() const
@@ -49,49 +47,41 @@ void TextView::GetClientRect(RECT& rect) const
 
 void TextView::OnPaint(HDC hdc)
 {
-	m_layoutText->OnPaint(hdc);
+	if (m_layoutText)
+	{
+		m_layoutText->OnPaint(hdc);
+	} 
+	else if (m_style)
+	{
+		RECT rc;
+		::GetClientRect(m_hWnd, &rc);
+		m_style->PaintBackground(hdc, rc.right, rc.bottom);
+	}
 }
 
 void TextView::OnWindowResize(int width, int height)
 {
-	//m_layoutText->OnWindowResize(width, height);
+	if (m_layoutText)
+		m_layoutText->OnWindowResize(width, height);
+
 	RefreshWindow();
 }
 
-void TextView::SetModel(const std::shared_ptr<IListModel>& model)
-{
-	if (model)	{
-		m_model = model;
-		UpdateView();
-	} else {
-		assert(false);
-	}
-}
 
 void TextView::SetLayout(IStackLayoutView* const layout)
 {
-	if (layout)
-	{
-		m_layoutText.reset(layout);
-		UpdateView();
-	}
-}
-
-LONG TextView::GetLeftMargin()
-{
-	return 5;
+	m_layoutText.reset(layout);
 }
 
 
 LRESULT TextView::OnPaint()
 {
-	//auto hrgnUpdate = CreateRectRgn(0, 0, 1, 1);
-	//GetUpdateRgn(m_hWnd, hrgnUpdate, FALSE);
 	RECT rc;
 	::GetClientRect(m_hWnd, &rc);
 
 	PAINTSTRUCT ps;
 	BeginPaint(m_hWnd, &ps);
+#if 0
 
 	SetBkColor(ps.hdc, RGB(192, 192, 192));
 	ExtTextOut(ps.hdc, 0, 0, ETO_OPAQUE, &rc, nullptr, 0, nullptr);
@@ -114,40 +104,11 @@ LRESULT TextView::OnPaint()
 	//rcCalc.bottom = rc.bottom;
 
 	DrawTextEx(ps.hdc, testText, -1, &rcCalc, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL, &params);
-
-	//OnPaint(ps.hdc);
-	
-	// current region
-	/*RECT rect;
-	GetClientRect(m_hWnd, &rect);
-
-	auto hdcMem = CreateCompatibleDC(ps.hdc);
-	auto hbmMem = CreateCompatibleBitmap(ps.hdc, rect.right - rect.left, m_nLineHeight);
-	SelectObject(hdcMem, hbmMem);
-	size_t last = max(ps.rcPaint.bottom / m_nLineHeight, 0);
-
-	for (size_t i = 0; i <= last; ++i)
-	{
-		auto sy = i * m_nLineHeight;
-		auto width = rect.right - rect.left;
-
-		m_defaultStyle->PaintBackground(hdcMem, width, m_nLineHeight);
-		//if (m_model && i < m_model->GetSize())
-		//	PaintText(hdcMem, m_model->GetIndex(i));
-
-		// transfer to screen 
-		BitBlt(ps.hdc, 0, sy, width, m_nLineHeight, hdcMem, 0, 0, SRCCOPY);
-	}
-	*/
-
+#else
+	OnPaint(ps.hdc);
+#endif
 	EndPaint(m_hWnd, &ps);
-	/*
-	DeleteDC(hdcMem);
-	DeleteObject(hbmMem);
-	DeleteObject(hrgnUpdate);
-	*/
 	return 0;
-
 }
 
 void TextView::RefreshWindow() const
@@ -170,18 +131,6 @@ LRESULT TextView::OnMouseActivate(HWND hwndTop, UINT nHitTest, UINT nMessage) co
 	return MA_ACTIVATE;
 }
 
-
-void TextView::PaintText(HDC hdc, std::unique_ptr<const IListIndex> line) const
-{
-	if (line && line->IsValid())
-	{
-		RECT bounds;
-		::GetClientRect(m_hWnd, &bounds);
-
-		const auto& str = line->ToString();
-		//m_defaultStyle->PaintText(hdc, bounds.right, m_nLineHeight, str.c_str(), str.c_str() + str.length());
-	}
-}
 
 LRESULT TextView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
 {

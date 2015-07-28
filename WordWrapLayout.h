@@ -7,14 +7,16 @@
 namespace kofax
 {
 
+struct IItemDelegate;
+
 class WordWrapLayout : public IStackLayoutView
 {
 public:
-	explicit WordWrapLayout(const IDrawableElement& owner, const RECT& clientRect);
+	explicit WordWrapLayout(const IDrawableElement& owner, 
+		const RECT& clientRect, IItemDelegate* const itemDelegate);
 
 private:
 	// IStackLayoutView
-	//void GetEndPosition(int& x, int& y) const final override;
 	void Clear() final override;
 	bool ItemPop() final override;
 	void ItemPush(ILayoutItem* const item) final override;
@@ -36,6 +38,7 @@ private:
 	HWND m_owner;
 	RECT m_clientRect;
 	std::shared_ptr<IStyleView> m_style;
+	std::unique_ptr<IItemDelegate> m_itemDelegate;
 	StackItems m_items;
 	int  m_lastX;
 	int  m_lastY;

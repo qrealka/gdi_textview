@@ -4,6 +4,7 @@
 #include "IListModel.h"
 #include <vector>
 #include <memory>
+#include <locale>
 
 namespace kofax
 {
@@ -12,7 +13,7 @@ namespace kofax
 		, public std::enable_shared_from_this<UnicodeFile>
 	{
 	public:
-		static std::shared_ptr<IListModel> OpenUnicodeFile(const wchar_t* fileName);
+		static std::shared_ptr<IListModel> OpenUnicodeFile(const wchar_t* fileName, std::locale& locale);
 
 		const std::wstring& GetStringLine(size_t number) const;
 		size_t GetSize() const final override; // IListModel

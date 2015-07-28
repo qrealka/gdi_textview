@@ -63,7 +63,7 @@ void TextViewStyle::SizeText(HDC hdc, RECT& rect, const wchar_t* text, size_t te
 	auto hOld = SelectObject(hdc, m_font);
 
 	DRAWTEXTPARAMS params = { sizeof(DRAWTEXTPARAMS), 4, 0, 0, textSize };
-	DrawTextEx(hdc, const_cast<wchar_t*>(text), -1, &rcCalc, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL | DT_CALCRECT, &params);
+	DrawTextEx(hdc, const_cast<wchar_t*>(text), textSize, &rcCalc, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL | DT_CALCRECT, &params);
 
 	SelectObject(hdc, hOld);
 }
@@ -89,7 +89,7 @@ void TextViewStyle::PaintText(HDC hdc, const RECT& rect, const wchar_t* text, si
 	//clientRect.right = rect.right;
 	
 	DRAWTEXTPARAMS params = { sizeof(DRAWTEXTPARAMS), 4, 0, 0, textSize };
-	DrawTextEx(hdc, const_cast<wchar_t*>(text), -1, &clientRect, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL, &params);
+	DrawTextEx(hdc, const_cast<wchar_t*>(text), textSize, &clientRect, DT_LEFT | DT_WORDBREAK | DT_EDITCONTROL, &params);
 
 	SelectObject(hdc, hOld);
 }

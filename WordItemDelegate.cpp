@@ -1,17 +1,20 @@
 #include "WordItemDelegate.h"
 #include "IStackLayoutView.h"
 #include "IStyleView.h"
+#include "IListModel.h"
 #include "WordWrapLayoutItem.h"
+#include <assert.h>
 
 
 namespace kofax
 {
 
-WordItemDelegate::WordItemDelegate(const std::shared_ptr<IStackLayoutView>& layout,
-		const std::locale& locale)
-	: m_layout(layout)
+WordItemDelegate::WordItemDelegate(const std::shared_ptr<IListModel>& model,
+	const std::locale& locale)
+	: m_model(model)
 	, m_locale(locale)
 {
+	assert(model);
 }
 
 void WordItemDelegate::SetStyles(IStyleView* styleOne, IStyleView* styleTwo)
@@ -21,7 +24,7 @@ void WordItemDelegate::SetStyles(IStyleView* styleOne, IStyleView* styleTwo)
 }
 
 void WordItemDelegate::AddLineToLayout(const std::unique_ptr<IListIndex>& textIterator,
-		const std::shared_ptr<IStackLayoutView>& layout, size_t& wordCounter)
+	IStackLayoutView& layout, size_t& wordCounter)
 {
 	const auto& facet = std::use_facet<std::ctype<wchar_t> >(m_locale);
 	const auto& str = textIterator->ToString();
@@ -38,12 +41,12 @@ void WordItemDelegate::AddLineToLayout(const std::unique_ptr<IListIndex>& textIt
 			if (!isWordSpaces) ++wordCounter;
 			if (wordCounter == 3)
 			{
-				layout->ItemPush(WordWrapLayoutItem::MakeWordWrappedText(*layout, wordBegin, it, isEOL, m_wordStyleTwo));
+				layout.ItemPush(WordWrapLayoutItem::MakeWordWrappedText(layout, wordBegin, it, isEOL, m_wordStyleTwo));
 				wordCounter = 0;
 			}
 			else
 			{
-				layout->ItemPush(WordWrapLayoutItem::MakeWordWrappedText(*layout, wordBegin, it, isEOL, m_wordStyleOne));
+				layout.ItemPush(WordWrapLayoutItem::MakeWordWrappedText(layout, wordBegin, it, isEOL, m_wordStyleOne));
 			}
 
 			if (isEOL)
@@ -54,9 +57,9 @@ void WordItemDelegate::AddLineToLayout(const std::unique_ptr<IListIndex>& textIt
 	}
 }
 
-void WordItemDelegate::SizeHint(int width, int height, IListIndex* index)
+void WordItemDelegate::OnWindowResize(int width, int height, IStackLayoutView& layout)
 {
-	std::unique_ptr<IListIndex> textIterator(index);
+	layout.Clear();
 
 	if (width <= 0 || height <= 0)
 		return;
@@ -64,9 +67,11 @@ void WordItemDelegate::SizeHint(int width, int height, IListIndex* index)
 	if (!m_wordStyleOne || !m_wordStyleTwo)
 		return;
 
-	size_t wordCounter = 0;
-	if (auto layout = m_layout.lock())
+	if (auto model = m_model.lock())
 	{
+		std::unique_ptr<IListIndex> textIterator(model->GetIndex(0));
+
+		size_t wordCounter = 0;
 		while (textIterator->IsValid())
 		{
 			AddLineToLayout(textIterator, layout, wordCounter);

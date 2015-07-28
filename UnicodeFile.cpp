@@ -115,7 +115,7 @@ bool ReadFirstBytes(const wchar_t* fileName, size_t bytesCount, OutputIterator o
 namespace kofax
 {
 	
-std::shared_ptr<IListModel> UnicodeFile::OpenUnicodeFile(const wchar_t* fileName)
+std::shared_ptr<IListModel> UnicodeFile::OpenUnicodeFile(const wchar_t* fileName, std::locale& locale)
 {
 	static const size_t BufferSizeForEncodingDetector = 1024;
 
@@ -133,7 +133,8 @@ std::shared_ptr<IListModel> UnicodeFile::OpenUnicodeFile(const wchar_t* fileName
 			return nullptr;
 
 		in.seekg(0, std::ios::beg);
-		in.imbue(DetectLocale(buf.data(), buf.data() + buf.size(), in.getloc()));
+		locale = DetectLocale(buf.data(), buf.data() + buf.size(), in.getloc());
+		in.imbue(locale);
 		return std::shared_ptr<UnicodeFile>(new UnicodeFile(in));
 	}
 

@@ -11,21 +11,21 @@ namespace kofax
 
 struct IStackLayoutView;
 struct IStyleView;
+struct IListModel;
 
 class WordItemDelegate : public IItemDelegate
 {
 public:
-	WordItemDelegate(const std::shared_ptr<IStackLayoutView>& layout, const std::locale& locale);
+	WordItemDelegate(const std::shared_ptr<IListModel>& model, const std::locale& locale);
 	void SetStyles(IStyleView* styleOne, IStyleView* styleTwo);
 
 private:
-	void SizeHint(int width, int height, IListIndex* index) final override;
+	void OnWindowResize(int width, int height, IStackLayoutView& layout) final override;
 	void AddLineToLayout(const std::unique_ptr<IListIndex>& textIterator, 
-		const std::shared_ptr<IStackLayoutView>& layout, size_t& wordCounter);
+		IStackLayoutView& layout, size_t& wordCounter);
 
 private:
-	//size_t m_wordCounter;
-	std::weak_ptr<IStackLayoutView> m_layout;
+	std::weak_ptr<IListModel> m_model;
 	std::shared_ptr<IStyleView> m_wordStyleOne;
 	std::shared_ptr<IStyleView> m_wordStyleTwo;
 	std::locale  m_locale;

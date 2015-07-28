@@ -1,16 +1,18 @@
 #include "WordWrapLayout.h"
 #include "ILayoutItem.h"
 #include "IStyleView.h"
+#include "IItemDelegate.h"
 
 #include <algorithm>
 
 namespace kofax
 {
 
-WordWrapLayout::WordWrapLayout(const IDrawableElement& owner, const RECT& clientRect)
+WordWrapLayout::WordWrapLayout(const IDrawableElement& owner, const RECT& clientRect, IItemDelegate* const itemDelegate)
 	: m_owner(owner.GetOwnerWindow())
 	, m_clientRect(clientRect)
 	, m_style(owner.GetStyle())
+	, m_itemDelegate(itemDelegate)
 	, m_lastX(clientRect.left)
 	, m_lastY(clientRect.top)
 {
@@ -19,8 +21,7 @@ WordWrapLayout::WordWrapLayout(const IDrawableElement& owner, const RECT& client
 
 void WordWrapLayout::Clear()
 {
-	StackItems tmp;
-	m_items.swap(tmp);
+	m_items.clear();
 }
 
 bool WordWrapLayout::ItemPop()
@@ -101,9 +102,15 @@ void WordWrapLayout::GetClientRect(RECT& rect) const
 
 void WordWrapLayout::OnPaint(HDC hdc)
 {
-	std::for_each(cbegin(m_items), cend(m_items), [&hdc](const std::unique_ptr<ILayoutItem>& item)
+	std::find_if(cbegin(m_items), cend(m_items), [&hdc, this](const std::unique_ptr<ILayoutItem>& item)
 	{
+		RECT rect;
+		item->GetClientRect(rect);
+		if (rect.top > m_clientRect.bottom)
+			return true;
+
 		item->OnPaint(hdc);
+		return false;
 	});
 }
 
@@ -111,6 +118,8 @@ void WordWrapLayout::OnWindowResize(int width, int height)
 {
 	m_clientRect.right = m_clientRect.left + width;
 	m_clientRect.bottom = m_clientRect.top + height;
+	if (m_itemDelegate)
+		m_itemDelegate->OnWindowResize(width, height, *this);
 }
 
 }
