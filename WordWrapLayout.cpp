@@ -15,6 +15,7 @@ WordWrapLayout::WordWrapLayout(const IDrawableElement& owner, const RECT& client
 	, m_lastY(clientRect.top)
 {
 	m_clientRect = clientRect;
+	m_style = owner.GetStyle();
 }
 
 
@@ -86,8 +87,10 @@ void WordWrapLayout::OnWindowResize(int width, int height)
 {
 	m_lastX = m_clientRect.left;
 	m_lastY = m_clientRect.top;
+
 	m_clientRect.right = m_clientRect.left + width;
 	m_clientRect.bottom = m_clientRect.top + height;
+
 	if (m_itemDelegate)
 		m_itemDelegate->OnWindowResize(width, height, *this);
 }

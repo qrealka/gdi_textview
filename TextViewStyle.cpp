@@ -3,7 +3,7 @@
 namespace 
 {
 
-const UINT TextRenderParams = DT_LEFT | DT_BOTTOM | DT_EXTERNALLEADING | DT_WORDBREAK | DT_EDITCONTROL | DT_EXPANDTABS;
+	const UINT TextRenderParams = DT_LEFT | DT_BOTTOM | DT_EXTERNALLEADING | DT_EDITCONTROL | DT_EXPANDTABS | DT_NOPREFIX;
 
 int PointsToLogical(int pointSize)
 {
@@ -20,7 +20,7 @@ HFONT EasyCreateFont(wchar_t *szFace, int pointSize)
 		0, 0, 0,
 		0,
 		0, 0, 0, DEFAULT_CHARSET, 0, 0,
-		DEFAULT_QUALITY,
+		PROOF_QUALITY,
 		0,
 		szFace);
 }
@@ -52,27 +52,42 @@ TextViewStyle::~TextViewStyle()
 		DeleteObject(m_font);
 }
 
-void TextViewStyle::SizeText(HDC hdc, RECT& rect, const wchar_t* text, size_t textSize) const
+unsigned TextViewStyle::SizeText(HDC hdc, RECT& rect, const wchar_t* text, size_t textSize) const
 {
 	if (text == nullptr || !textSize)
 	{
 		SetRectEmpty(&rect);
-		return;
+		return TextRenderParams | DT_WORDBREAK;;
 	}
 
-	RECT rcCalc = { 0, 0, rect.right, rect.bottom };
-
+	RECT rcCalc = { 0, 0, LONG_MAX, LONG_MAX };
 	auto hOld = SelectObject(hdc, m_font);
 
+	unsigned flags = TextRenderParams | DT_SINGLELINE;
 	DRAWTEXTPARAMS params = { sizeof(DRAWTEXTPARAMS), 4, 0, 0, textSize };
-	DrawTextEx(hdc, const_cast<wchar_t*>(text), textSize, &rcCalc, TextRenderParams | DT_CALCRECT, &params);
-	rect.right = rect.left + rcCalc.right;
-	rect.bottom = rect.top + rcCalc.bottom;
+	DrawTextEx(hdc, const_cast<wchar_t*>(text), textSize, &rcCalc, flags | DT_CALCRECT, &params);
+
+	if (rect.left < 5 && rcCalc.right > rect.right)
+	{
+		// too long word or too small window
+		flags = TextRenderParams | DT_WORDBREAK;
+		DrawTextEx(hdc, const_cast<wchar_t*>(text), textSize, &rcCalc, TextRenderParams | DT_CALCRECT, &params);
+		
+		rect.right = rect.left + rcCalc.right;
+		rect.bottom = rect.top + rcCalc.bottom; // we don't need vertical algment because GDI ignore it whe DT_WORDBREAK specified
+	} 
+	else
+	{
+		rect.right = rect.left + rcCalc.right;
+		// if word in one line - use rect.bottom
+	}
+
 
 	SelectObject(hdc, hOld);
+	return flags;
 }
 
-void TextViewStyle::PaintText(HDC hdc, const RECT& rect, const wchar_t* text, size_t textSize) const
+void TextViewStyle::PaintText(HDC hdc, const RECT& rect, const wchar_t* text, size_t textSize, unsigned flags) const
 {
 	if (text == nullptr || !textSize)
 		return;
@@ -82,18 +97,11 @@ void TextViewStyle::PaintText(HDC hdc, const RECT& rect, const wchar_t* text, si
 	if (!m_defaultStyle)
 	{
 		SetBkMode(hdc, TRANSPARENT);
-		SetTextAlign(hdc, TA_LEFT); // don't use TA_UPDATECP   
 		SetTextColor(hdc, m_foregroundColor);
 	}
 
-	auto clientRect = rect;
-	SizeText(hdc, clientRect, text, textSize);
-
-	//clientRect.left = rect.left;
-	//clientRect.right = rect.right;
-	
 	DRAWTEXTPARAMS params = { sizeof(DRAWTEXTPARAMS), 4, 0, 0, textSize };
-	DrawTextEx(hdc, const_cast<wchar_t*>(text), textSize, &clientRect, TextRenderParams, &params);
+	DrawTextEx(hdc, const_cast<wchar_t*>(text), textSize, const_cast<RECT*>(&rect), flags, &params);
 
 	SelectObject(hdc, hOld);
 }

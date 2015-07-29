@@ -14,8 +14,8 @@ public:
 	~TextViewStyle();
 
 private:
-	void SizeText(HDC hdc, RECT& rect, const wchar_t* text, size_t textSize) const override final;
-	void PaintText(HDC hdc, const RECT& rect, const wchar_t* text, size_t textSize) const final override;
+	unsigned SizeText(HDC hdc, RECT& rect, const wchar_t* text, size_t textSize) const override final;
+	void PaintText(HDC hdc, const RECT& rect, const wchar_t* text, size_t textSize, unsigned flags) const final override;
 	void PaintBackground(HDC hdc, const RECT& rect) const final override;
 	void GetFontMetrics(HDC hdc, long& width, long& height) const final override;
 

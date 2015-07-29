@@ -11,7 +11,7 @@ namespace kofax
 
 ViewController::ViewController(HWND hwndParent, const wchar_t* fileName)
 	: m_view(new TextView(hwndParent))
-	, m_style(new TextViewStyle(L"Arial", 19, RGB(0, 0, 0), RGB(128, 128, 128)))
+	, m_style(new TextViewStyle(L"Arial", 24, RGB(0, 0, 0), RGB(128, 128, 128)))
 {
 	m_view->SetStyle(m_style);
 
@@ -20,8 +20,8 @@ ViewController::ViewController(HWND hwndParent, const wchar_t* fileName)
 	assert(m_model);
 
 	std::unique_ptr<WordItemDelegate> itemDelegate(new WordItemDelegate(m_model, locale));
-	itemDelegate->SetStyles(new TextViewStyle(L"Arial", 19, RGB(0, 0, 0), RGB(128, 128, 128)),
-		new TextViewStyle(L"Arial", 21, RGB(0, 0, 0), RGB(128, 128, 128)));
+	itemDelegate->SetStyles(new TextViewStyle(L"Arial", 18, RGB(0, 0, 0), RGB(128, 128, 128)),
+		new TextViewStyle(L"Arial", 24, RGB(0, 0, 0), RGB(128, 128, 128)));
 
 	RECT rect;
 	m_view->GetClientRect(rect);

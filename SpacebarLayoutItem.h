@@ -27,7 +27,7 @@ private:
 
 private:
 	const std::wstring m_text;
-	size_t m_spaceCount;
+	long m_lineHeight;
 	bool m_EOL;
 };
 

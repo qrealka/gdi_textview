@@ -21,10 +21,19 @@ AbstractLayoutItem* WordWrapLayoutItem::MakeWordWrappedText(const AbstractStackL
 
 WordWrapLayoutItem::WordWrapLayoutItem(const IDrawableElement& layout, bool endOfLine)
 	: AbstractLayoutItem(layout) 
+	, m_textFlags(0)
 	, m_EOL(endOfLine)
 {
 	m_clientRect.left = m_ownerRect.left;
 	m_clientRect.top = m_ownerRect.top;
+
+	if (layout.GetStyle())
+	{
+		auto hdc = GetDC(nullptr);
+		long width;
+		layout.GetStyle()->GetFontMetrics(hdc, width, m_lineHeight);
+		ReleaseDC(nullptr, hdc);
+	}
 }
 
 void WordWrapLayoutItem::Resize()
@@ -36,18 +45,19 @@ void WordWrapLayoutItem::Resize()
 		return;
 	}
 
-	m_clientRect.bottom = LONG_MAX;
-	m_clientRect.right = LONG_MAX;
+	m_clientRect.bottom = m_lineHeight ? m_clientRect.top + m_lineHeight : m_ownerRect.bottom;
+	m_clientRect.right = m_ownerRect.right;
 
 	auto hdc = GetDC(nullptr);
-	m_style->SizeText(hdc, m_clientRect, m_displayText, m_displayTextLength);
+	m_textFlags = m_style->SizeText(hdc, m_clientRect, m_displayText, m_displayTextLength);
+
 	if (m_clientRect.right > m_ownerRect.right)
 	{
 		m_clientRect.left = m_ownerRect.left;
 		m_clientRect.top = m_clientRect.bottom;
-		m_clientRect.bottom = LONG_MAX;
-		m_clientRect.right = LONG_MAX;
-		m_style->SizeText(hdc, m_clientRect, m_displayText, m_displayTextLength);
+		m_clientRect.bottom = m_lineHeight ? m_clientRect.top + m_lineHeight : m_ownerRect.bottom;
+		m_clientRect.right = m_ownerRect.right;
+		m_textFlags = m_style->SizeText(hdc, m_clientRect, m_displayText, m_displayTextLength);
 	}
 	ReleaseDC(nullptr, hdc);
 	if (m_EOL)
@@ -80,7 +90,7 @@ void WordWrapLayoutItem::OnPaint(HDC hdc)
 	if (m_style)
 	{
 		m_style->PaintBackground(hdc, m_clientRect);
-		m_style->PaintText(hdc, m_clientRect, m_displayText, m_displayTextLength);
+		m_style->PaintText(hdc, m_clientRect, m_displayText, m_displayTextLength, m_textFlags);
 	}
 }
 

@@ -30,8 +30,8 @@ private:
 
 	std::unique_ptr<IItemDelegate> m_itemDelegate;
 	StackItems m_items;
-	int  m_lastX;
-	int  m_lastY;
+	long m_lastX;
+	long m_lastY;
 };
 
 }

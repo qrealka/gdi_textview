@@ -31,6 +31,8 @@ private:
 private:
 	const wchar_t* m_displayText;
 	size_t m_displayTextLength;
+	unsigned m_textFlags;
+	long m_lineHeight;
 	bool m_EOL;
 };
 }
