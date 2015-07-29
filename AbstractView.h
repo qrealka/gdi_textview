@@ -6,12 +6,12 @@
 namespace kofax
 {
 
-struct IStackLayoutView;
+struct AbstractStackLayout;
 
 struct AbstractView : public AbstractElement
 {
 	virtual LRESULT WndProc(UINT msg, WPARAM wParam, LPARAM lParam) = 0;
-	virtual void SetLayout(IStackLayoutView* const layout) = 0;
+	virtual void SetLayout(AbstractStackLayout* const layout) = 0;
 	virtual void UpdateView() = 0;
 
 protected:

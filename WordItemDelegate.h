@@ -9,7 +9,7 @@
 namespace kofax
 {
 
-struct IStackLayoutView;
+struct AbstractStackLayout;
 struct IStyleView;
 struct IListModel;
 
@@ -20,9 +20,9 @@ public:
 	void SetStyles(IStyleView* styleOne, IStyleView* styleTwo);
 
 private:
-	void OnWindowResize(int width, int height, IStackLayoutView& layout) final override;
+	void OnWindowResize(int width, int height, AbstractStackLayout& layout) final override;
 	void AddLineToLayout(const std::unique_ptr<IListIndex>& textIterator, 
-		IStackLayoutView& layout, size_t& wordCounter);
+		AbstractStackLayout& layout, size_t& wordCounter);
 
 private:
 	std::weak_ptr<IListModel> m_model;

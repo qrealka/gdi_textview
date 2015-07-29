@@ -4,11 +4,11 @@
 namespace kofax
 {
 
-struct IStackLayoutView;
+struct AbstractStackLayout;
 
 struct IItemDelegate
 {
-	virtual void OnWindowResize(int width, int height, IStackLayoutView& layout) = 0;
+	virtual void OnWindowResize(int width, int height, AbstractStackLayout& layout) = 0;
 	virtual ~IItemDelegate() = default;
 
 protected:

@@ -5,7 +5,7 @@
 #include <windows.h>
 #include <memory>
 
-#include "IListView.h"
+#include "AbstractView.h"
 
 namespace kofax
 {
@@ -22,7 +22,7 @@ public:
 	static const TCHAR* GetTypeName();
 
 private:
-	std::unique_ptr<AbstractListView> m_view;
+	std::unique_ptr<AbstractView> m_view;
 	std::shared_ptr<IListModel> m_model;
 	std::shared_ptr<IStyleView> m_style;
 };

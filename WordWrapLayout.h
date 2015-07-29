@@ -1,7 +1,7 @@
 #ifndef _78126AE2_660E_4AB2_AAA5_B5068B61ED42_
 #define _78126AE2_660E_4AB2_AAA5_B5068B61ED42_
 
-#include "IStackLayoutView.h"
+#include "AbstractStackLayout.h"
 #include <list>
 
 namespace kofax
@@ -9,26 +9,18 @@ namespace kofax
 
 struct IItemDelegate;
 
-class WordWrapLayout : public IStackLayoutView
+class WordWrapLayout : public AbstractStackLayout
 {
 public:
-	explicit WordWrapLayout(const IDrawableElement& owner, 
+	WordWrapLayout(const IDrawableElement& owner, 
 		const RECT& clientRect, IItemDelegate* const itemDelegate);
 
 private:
-	// IStackLayoutView
+	// AbstractStackLayout
 	void Clear() final override;
 	bool ItemPop() final override;
 	void ItemPush(AbstractLayoutItem* const item) final override;
-	void AddSpaces(AbstractLayoutItem* const item) final override;
 
-	// IDrawableElement
-	HWND GetOwnerWindow() const final override;
-		
-	void SetStyle(std::shared_ptr<IStyleView>style) final override;
-	const std::shared_ptr<IStyleView>& GetStyle() const final override;
-
-	void GetClientRect(RECT& rect) const final override;
 	void OnPaint(HDC hdc) final override;
 	void OnWindowResize(int width, int height) final override;
 
@@ -36,9 +28,6 @@ private:
 	typedef std::unique_ptr<AbstractLayoutItem> LayoutItem;
 	typedef std::list<LayoutItem> StackItems;
 
-	HWND m_owner;
-	RECT m_clientRect;
-	std::shared_ptr<IStyleView> m_style;
 	std::unique_ptr<IItemDelegate> m_itemDelegate;
 	StackItems m_items;
 	int  m_lastX;

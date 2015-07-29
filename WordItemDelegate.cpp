@@ -1,8 +1,9 @@
 #include "WordItemDelegate.h"
-#include "IStackLayoutView.h"
+#include "AbstractStackLayout.h"
 #include "IStyleView.h"
 #include "IListModel.h"
 #include "WordWrapLayoutItem.h"
+#include "SpacebarLayoutItem.h"
 #include <assert.h>
 
 
@@ -24,7 +25,7 @@ void WordItemDelegate::SetStyles(IStyleView* styleOne, IStyleView* styleTwo)
 }
 
 void WordItemDelegate::AddLineToLayout(const std::unique_ptr<IListIndex>& textIterator,
-	IStackLayoutView& layout, size_t& wordCounter)
+	AbstractStackLayout& layout, size_t& wordCounter)
 {
 	const auto& facet = std::use_facet<std::ctype<wchar_t> >(m_locale);
 	const auto& str = textIterator->ToString();
@@ -40,7 +41,7 @@ void WordItemDelegate::AddLineToLayout(const std::unique_ptr<IListIndex>& textIt
 		{
 			if (isWordSpaces)
 			{
-				layout.AddSpaces(WordWrapLayoutItem::MakeWordWrappedText(layout, wordBegin, it, isEOL, m_wordStyleOne));
+				layout.ItemPush(SpacebarLayoutItem::MakeSpaces(layout, wordBegin, it, isEOL, m_wordStyleOne));
 			}
 			else
 			{
@@ -63,7 +64,7 @@ void WordItemDelegate::AddLineToLayout(const std::unique_ptr<IListIndex>& textIt
 	}
 }
 
-void WordItemDelegate::OnWindowResize(int width, int height, IStackLayoutView& layout)
+void WordItemDelegate::OnWindowResize(int width, int height, AbstractStackLayout& layout)
 {
 	layout.Clear();
 

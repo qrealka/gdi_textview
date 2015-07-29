@@ -6,7 +6,7 @@
 namespace kofax
 {
 
-struct IStyleView;
+struct IDrawableElement;
 
 struct AbstractLayoutItem : public AbstractElement
 {
@@ -14,8 +14,8 @@ struct AbstractLayoutItem : public AbstractElement
 	virtual void SetDisplayText(const wchar_t* begin, const wchar_t* end) = 0;
 
 protected:
-	explicit AbstractLayoutItem(HWND owner);
-
+	explicit AbstractLayoutItem(const IDrawableElement& layout);
+	RECT m_ownerRect;
 };
 
 }

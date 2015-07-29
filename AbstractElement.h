@@ -11,6 +11,7 @@ struct AbstractElement : public IDrawableElement
 protected:
 	explicit AbstractElement(HWND owner);
 
+public:
 	HWND GetOwnerWindow() const override;
 	void SetStyle(std::shared_ptr<IStyleView> style) override;
 	const std::shared_ptr<IStyleView>& GetStyle() const override;

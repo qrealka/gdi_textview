@@ -1,5 +1,6 @@
 #include "WordWrapLayoutItem.h"
 #include "IStyleView.h"
+#include "AbstractStackLayout.h"
 
 #include <memory>
 #include <assert.h>
@@ -7,10 +8,10 @@
 namespace kofax
 {
 
-AbstractLayoutItem* WordWrapLayoutItem::MakeWordWrappedText(const IStackLayoutView& layout,
+AbstractLayoutItem* WordWrapLayoutItem::MakeWordWrappedText(const AbstractStackLayout& layout,
 	const wchar_t* begin, const wchar_t* end, bool newLine, const std::shared_ptr<IStyleView>& style)
 {
-	auto item = std::make_unique<WordWrapLayoutItem>(layout, newLine);
+	std::unique_ptr<WordWrapLayoutItem> item(new WordWrapLayoutItem(layout, newLine));
 
 	item->SetStyle(style);
 	item->SetDisplayText(begin, end);
@@ -18,47 +19,45 @@ AbstractLayoutItem* WordWrapLayoutItem::MakeWordWrappedText(const IStackLayoutVi
 	return item.release();
 }
 
-WordWrapLayoutItem::WordWrapLayoutItem(const IStackLayoutView& layout, bool endOfLine)
-	: m_owner(layout.GetOwnerWindow())
-	, m_style(layout.GetStyle())
+WordWrapLayoutItem::WordWrapLayoutItem(const IDrawableElement& layout, bool endOfLine)
+	: AbstractLayoutItem(layout) 
 	, m_EOL(endOfLine)
 {
-	layout.GetClientRect(m_ownerRect);
-	m_clienRect.left = m_ownerRect.left;
-	m_clienRect.top = m_ownerRect.top;
+	m_clientRect.left = m_ownerRect.left;
+	m_clientRect.top = m_ownerRect.top;
 }
 
 void WordWrapLayoutItem::Resize()
 {
 	if (!m_style)
 	{
-		m_clienRect.right = m_clienRect.left;
-		m_clienRect.bottom = m_clienRect.top;
+		m_clientRect.right = m_clientRect.left;
+		m_clientRect.bottom = m_clientRect.top;
 		return;
 	}
 
-	m_clienRect.bottom = LONG_MAX; 
-	m_clienRect.right = LONG_MAX; 
+	m_clientRect.bottom = LONG_MAX;
+	m_clientRect.right = LONG_MAX;
 
 	auto hdc = GetDC(nullptr);
-	m_style->SizeText(hdc, m_clienRect, m_displayText, m_displayTextLength);
-	if (m_clienRect.right > m_ownerRect.right)
+	m_style->SizeText(hdc, m_clientRect, m_displayText, m_displayTextLength);
+	if (m_clientRect.right > m_ownerRect.right)
 	{
-		m_clienRect.left = m_ownerRect.left;
-		m_clienRect.top = m_clienRect.bottom;
-		m_clienRect.bottom = LONG_MAX;
-		m_clienRect.right = LONG_MAX;
-		m_style->SizeText(hdc, m_clienRect, m_displayText, m_displayTextLength);
+		m_clientRect.left = m_ownerRect.left;
+		m_clientRect.top = m_clientRect.bottom;
+		m_clientRect.bottom = LONG_MAX;
+		m_clientRect.right = LONG_MAX;
+		m_style->SizeText(hdc, m_clientRect, m_displayText, m_displayTextLength);
 	}
 	ReleaseDC(nullptr, hdc);
 	if (m_EOL)
-		m_clienRect.right = m_ownerRect.right;
+		m_clientRect.right = m_ownerRect.right;
 }
 
 void WordWrapLayoutItem::SetTop(int x, int y)
 {
-	m_clienRect.left = x;
-	m_clienRect.top = y;
+	m_clientRect.left = x;
+	m_clientRect.top = y;
 }
 
 void WordWrapLayoutItem::SetDisplayText(const wchar_t* begin, const wchar_t* end)
@@ -80,8 +79,8 @@ void WordWrapLayoutItem::OnPaint(HDC hdc)
 {
 	if (m_style)
 	{
-		m_style->PaintBackground(hdc, m_clienRect);
-		m_style->PaintText(hdc, m_clienRect, m_displayText, m_displayTextLength);
+		m_style->PaintBackground(hdc, m_clientRect);
+		m_style->PaintText(hdc, m_clientRect, m_displayText, m_displayTextLength);
 	}
 }
 

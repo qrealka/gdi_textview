@@ -2,7 +2,7 @@
 #define _BFB60DF2_ABB4_47F6_95CD_E5EAA5FC02BE_
 
 #include "AbstractView.h"
-#include "IStackLayoutView.h"
+#include "AbstractStackLayout.h"
 #include <memory>
 
 namespace kofax
@@ -24,7 +24,7 @@ private:
 private:
 	// AbstractView
 	void UpdateView() final override;
-	void SetLayout(IStackLayoutView* const layout) final override;
+	void SetLayout(AbstractStackLayout* const layout) final override;
 	LRESULT WndProc(UINT msg, WPARAM wParam, LPARAM lParam) final override;
 
 	void RefreshWindow() const;
@@ -33,9 +33,7 @@ private:
 	LRESULT OnPaint();
 
 private:
-	HWND m_hWnd;
-	std::shared_ptr<IStyleView> m_style;
-	std::unique_ptr<IStackLayoutView> m_layoutText;
+	std::unique_ptr<AbstractStackLayout> m_layoutText;
 };
 
 }
