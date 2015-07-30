@@ -41,7 +41,7 @@ SpacebarLayoutItem::SpacebarLayoutItem(const IDrawableElement& layout, size_t sp
 void SpacebarLayoutItem::SetTop(int x, int y)
 {
 	m_clientRect.left = x;
-	m_clientRect.top = y;
+	m_clientRect.top = y - m_scrollOffset;
 }
 
 void SpacebarLayoutItem::SetDisplayText(const wchar_t*, const wchar_t*)
@@ -65,7 +65,7 @@ void SpacebarLayoutItem::OnWindowResize(int width, int height)
 		return;
 	}
 
-	m_clientRect.bottom = m_lineHeight ? m_clientRect.top + m_lineHeight : m_ownerRect.bottom;;
+	m_clientRect.bottom = m_lineHeight ? m_clientRect.top + m_lineHeight : m_ownerRect.bottom - m_scrollOffset;
 	m_clientRect.right = m_ownerRect.right;
 
 	auto hdc = GetDC(nullptr);
@@ -83,7 +83,7 @@ void SpacebarLayoutItem::OnWindowResize(int width, int height)
 		{
 			m_clientRect.left = m_ownerRect.left;
 			m_clientRect.top = m_clientRect.bottom;
-			m_clientRect.bottom = m_lineHeight ? m_clientRect.top + m_lineHeight : m_ownerRect.bottom;
+			m_clientRect.bottom = m_lineHeight ? m_clientRect.top + m_lineHeight : m_ownerRect.bottom - m_scrollOffset;
 			m_clientRect.right = m_ownerRect.right;
 			m_style->SizeText(hdc, m_clientRect, m_text.c_str(), missing);
 		}

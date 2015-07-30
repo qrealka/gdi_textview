@@ -20,12 +20,9 @@ LRESULT WINAPI TextViewWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam
 	{
 		try
 		{
-			if (ptv = new ViewController(hwnd, controllerFileName))
-			{
-				SetWindowLongPtr(hwnd, 0, reinterpret_cast<LONG>(ptv));
-				return TRUE;
-			}
-			return FALSE;
+			ptv = new ViewController(hwnd, controllerFileName);
+			SetWindowLongPtr(hwnd, 0, reinterpret_cast<LONG>(ptv));
+			return TRUE;
 		}
 		catch (const std::exception&)
 		{

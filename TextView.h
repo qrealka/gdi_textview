@@ -25,6 +25,8 @@ private:
 	// AbstractView
 	void UpdateView() final override;
 	void SetLayout(AbstractStackLayout* const layout) final override;
+
+	LRESULT OnKeyDown(WPARAM keyCode, LPARAM flags);
 	LRESULT WndProc(UINT msg, WPARAM wParam, LPARAM lParam) final override;
 
 	void RefreshWindow() const;

@@ -25,7 +25,7 @@ EncodeDetector::EncodeDetector()
 	{
 		if (pML.QueryInterface(&p) != S_OK)
 		{
-			throw;
+			throw std::runtime_error("Error query interface IMultiLanguage");
 		}
 	}
 }

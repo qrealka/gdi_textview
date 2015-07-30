@@ -45,7 +45,7 @@ void WordWrapLayoutItem::Resize()
 		return;
 	}
 
-	m_clientRect.bottom = m_lineHeight ? m_clientRect.top + m_lineHeight : m_ownerRect.bottom;
+	m_clientRect.bottom = m_lineHeight ? m_clientRect.top + m_lineHeight : m_ownerRect.bottom - m_scrollOffset;
 	m_clientRect.right = m_ownerRect.right;
 
 	auto hdc = GetDC(nullptr);
@@ -67,7 +67,7 @@ void WordWrapLayoutItem::Resize()
 void WordWrapLayoutItem::SetTop(int x, int y)
 {
 	m_clientRect.left = x;
-	m_clientRect.top = y;
+	m_clientRect.top = y - m_scrollOffset;
 }
 
 void WordWrapLayoutItem::SetDisplayText(const wchar_t* begin, const wchar_t* end)

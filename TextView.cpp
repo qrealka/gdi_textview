@@ -40,6 +40,29 @@ void TextView::SetLayout(AbstractStackLayout* const layout)
 }
 
 
+LRESULT TextView::OnKeyDown(WPARAM keyCode, LPARAM flags)
+{
+	switch (keyCode)
+	{
+	case VK_UP:
+		if (m_layoutText)
+		{
+			m_layoutText->ScrollLineUp();
+			RefreshWindow();
+		}
+		break;
+
+	case VK_DOWN:
+		if (m_layoutText)
+		{
+			m_layoutText->ScrollLineDown();
+			RefreshWindow();
+		}
+		break;
+	}
+	return 0;
+}
+
 LRESULT TextView::OnPaint()
 {
 	RECT rc;
@@ -75,6 +98,9 @@ LRESULT TextView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
 	{
+	case WM_ERASEBKGND:
+		return 1;
+
 	case WM_PAINT:
 		return OnPaint();
 
@@ -82,6 +108,9 @@ LRESULT TextView::WndProc(UINT msg, WPARAM wParam, LPARAM lParam)
 		::GetClientRect(m_owner, &m_clientRect);
 		OnWindowResize(LOWORD(lParam), HIWORD(lParam));
 		return 0;
+
+	case WM_KEYDOWN:
+		return OnKeyDown(wParam, lParam);
 
 	case WM_MOUSEACTIVATE:
 		return OnMouseActivate(reinterpret_cast<HWND>(wParam), LOWORD(lParam), HIWORD(lParam));

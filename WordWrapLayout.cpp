@@ -13,9 +13,18 @@ WordWrapLayout::WordWrapLayout(const IDrawableElement& owner, const RECT& client
 	, m_itemDelegate(itemDelegate)
 	, m_lastX(clientRect.left)
 	, m_lastY(clientRect.top)
+	, m_currentLine(0)
+	, m_lineHeight(0)
 {
 	m_clientRect = clientRect;
 	m_style = owner.GetStyle();
+	if (m_style)
+	{
+		auto hdc = GetDC(nullptr);
+		long width;
+		m_style->GetFontMetrics(hdc, width, m_lineHeight);
+		ReleaseDC(nullptr, hdc);
+	}
 }
 
 
@@ -53,6 +62,7 @@ void WordWrapLayout::ItemPush(AbstractLayoutItem* const item)
 {
 	if (item)
 	{
+		item->SetScrollOffset(m_currentLine * m_lineHeight);
 		item->SetTop(m_lastX, m_lastY);
 		item->OnWindowResize(m_clientRect.right - m_clientRect.left,
 			m_clientRect.bottom - m_clientRect.top);
@@ -67,14 +77,49 @@ void WordWrapLayout::ItemPush(AbstractLayoutItem* const item)
 	}
 }
 
+void WordWrapLayout::ScrollLineUp()
+{
+	if (m_currentLine)
+	{
+		--m_currentLine;
+		for_each(begin(m_items), end(m_items), [this](LayoutItem& item)
+		{
+			item->SetScrollOffset(m_currentLine * m_lineHeight);
+		});
+	}
+}
+
+void WordWrapLayout::ScrollLineDown()
+{
+	RECT rect;
+	m_items.back()->GetClientRect(rect);
+	if (rect.bottom > 0)
+	{
+		++m_currentLine;
+		for_each(begin(m_items), end(m_items), [this](LayoutItem& item)
+		{
+			item->SetScrollOffset(m_currentLine * m_lineHeight);
+		});
+	}
+}
+
 void WordWrapLayout::OnPaint(HDC hdc)
 {
-	m_style->PaintBackground(hdc, m_clientRect);
+	long lineHeight = 0;
+	if (m_style)
+	{
+		long width;
+		m_style->GetFontMetrics(hdc, width, lineHeight);
+		m_style->PaintBackground(hdc, m_clientRect);
+	}
 
-	std::find_if(cbegin(m_items), cend(m_items), [&hdc, this](const std::unique_ptr<AbstractLayoutItem>& item)
+	std::find_if(cbegin(m_items), cend(m_items), [&hdc, &lineHeight, this](const std::unique_ptr<AbstractLayoutItem>& item)
 	{
 		RECT rect;
 		item->GetClientRect(rect);
+		if (rect.top < 0)
+			return false;
+
 		if (rect.top > m_clientRect.bottom)
 			return true;
 

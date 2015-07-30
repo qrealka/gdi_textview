@@ -20,6 +20,8 @@ private:
 	void Clear() final override;
 	bool ItemPop() final override;
 	void ItemPush(AbstractLayoutItem* const item) final override;
+	void ScrollLineUp() final override;
+	void ScrollLineDown() final override;
 
 	void OnPaint(HDC hdc) final override;
 	void OnWindowResize(int width, int height) final override;
@@ -32,6 +34,8 @@ private:
 	StackItems m_items;
 	long m_lastX;
 	long m_lastY;
+	long m_currentLine;
+	long m_lineHeight;
 };
 
 }

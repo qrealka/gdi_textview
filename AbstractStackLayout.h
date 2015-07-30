@@ -13,7 +13,8 @@ struct AbstractStackLayout : public AbstractElement
 	virtual void Clear() = 0;
 	virtual bool ItemPop() = 0;
 	virtual void ItemPush(AbstractLayoutItem* const item) = 0;
-
+	virtual void ScrollLineUp() = 0;
+	virtual void ScrollLineDown() = 0;
 protected:
 	explicit AbstractStackLayout(const IDrawableElement& owner);
 };
