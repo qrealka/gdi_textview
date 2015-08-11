@@ -62,6 +62,7 @@ std::locale DetectLocale(const char* begin, const char* end, const std::locale& 
 std::wifstream& SafeGetLine(std::wifstream& in, std::wstring& line)
 {
 	line.clear();
+
 	std::wifstream::sentry se(in, true);
 
 	auto* buf = in.rdbuf();
@@ -96,16 +97,18 @@ template<typename OutputIterator>
 bool ReadFirstBytes(const wchar_t* fileName, size_t bytesCount, OutputIterator out)
 {
 	assert(fileName);
-
 	std::ifstream inputFile(fileName, std::ios::in | std::ios_base::binary | std::ios::ate);
-	if (!inputFile.is_open() || inputFile.bad())
-		return false;
 
-	size_t bufSize = min(bytesCount, inputFile.tellg());
-	inputFile.seekg(0, std::ios::beg);
-	if (bufSize)
-		copy_n(std::istreambuf_iterator<char>(inputFile), bufSize, out);
-	return true;
+	if (inputFile.is_open())
+	{
+		size_t bufSize = min(bytesCount, inputFile.tellg());
+		inputFile.seekg(0, std::ios::beg);
+		if (inputFile && bufSize)
+			copy_n(std::istreambuf_iterator<char>(inputFile), bufSize, out);
+		return true;
+
+	}
+	return false;
 }
 
 }
@@ -125,7 +128,7 @@ std::shared_ptr<IListModel> UnicodeFile::OpenUnicodeFile(const wchar_t* fileName
 		return nullptr;
 
 	std::wifstream in(fileName, std::ios::binary | std::ios::ate);
-	if (!in.is_open() || in.bad())
+	if (!in.is_open())
 		return nullptr;
 
 	in.seekg(0, std::ios::beg);
@@ -134,7 +137,7 @@ std::shared_ptr<IListModel> UnicodeFile::OpenUnicodeFile(const wchar_t* fileName
 		locale = DetectLocale(buf.data(), buf.data() + buf.size(), in.getloc());
 		in.imbue(locale);
 	}
-	return std::shared_ptr<UnicodeFile>(new UnicodeFile(in));
+	return std::shared_ptr<UnicodeFile>(new UnicodeFile(in, buf.size()));
 }
 
 const std::wstring& UnicodeFile::GetStringLine(size_t number) const
@@ -146,7 +149,7 @@ UnicodeFile::~UnicodeFile()
 {
 }
 
-UnicodeFile::UnicodeFile(std::wifstream& file)
+UnicodeFile::UnicodeFile(std::wifstream& file, size_t fileSize)
 {
 	std::wstring line;
 	for (bool first = true; file.good(); first = false)
@@ -156,7 +159,7 @@ UnicodeFile::UnicodeFile(std::wifstream& file)
 		if (file.bad() || file.fail())
 		{
 			// sbumpc return EOF because wrong codecvt using in specified locale
-			if (first)
+			if (first && fileSize)
 				throw std::runtime_error("Cannot work with ANSI files!");
 			break;
 		}

@@ -20,7 +20,7 @@ namespace kofax
 		~UnicodeFile();
 
 	private:
-		explicit UnicodeFile(std::wifstream& file);
+		UnicodeFile(std::wifstream& file, size_t fileSize);
 
 		UnicodeFile(const UnicodeFile&) = delete;
 		UnicodeFile& operator=(const UnicodeFile&) = delete;

@@ -28,7 +28,8 @@ void WordItemDelegate::AddLineToLayout(const std::unique_ptr<IListIndex>& textIt
 	const auto& facet = std::use_facet<std::ctype<wchar_t> >(m_locale);
 	const auto& str = textIterator->ToString();
 	auto wordBegin = str.c_str();
-	
+	auto style = m_wordStyleOne;
+
 	if (str.empty())
 	{
 		layout.ItemPush(SpacebarLayoutItem::MakeSpaces(layout, wordBegin, wordBegin + 1, true, m_wordStyleOne));
@@ -49,14 +50,11 @@ void WordItemDelegate::AddLineToLayout(const std::unique_ptr<IListIndex>& textIt
 			}
 			else
 			{
-				if (++wordCounter == 3)
+				layout.ItemPush(WordWrapLayoutItem::MakeWordWrappedText(layout, wordBegin, it, isEOL, style));
+				if (++wordCounter == 2)
 				{
-					layout.ItemPush(WordWrapLayoutItem::MakeWordWrappedText(layout, wordBegin, it, isEOL, m_wordStyleTwo));
 					wordCounter = 0;
-				}
-				else
-				{
-					layout.ItemPush(WordWrapLayoutItem::MakeWordWrappedText(layout, wordBegin, it, isEOL, m_wordStyleOne));
+					style = style == m_wordStyleOne ? m_wordStyleTwo : m_wordStyleOne;
 				}
 			}
 
