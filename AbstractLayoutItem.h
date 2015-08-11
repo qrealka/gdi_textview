@@ -10,9 +10,11 @@ struct IDrawableElement;
 
 struct AbstractLayoutItem : public AbstractElement
 {
-	virtual void SetTop(int x, int y) = 0;
+	virtual void SetTop(int x, int y);
 	virtual void SetDisplayText(const wchar_t* begin, const wchar_t* end) = 0;
 	virtual void SetScrollOffset(long offset);
+
+	void GetClientRect(RECT& rect) const override;
 protected:
 	explicit AbstractLayoutItem(const IDrawableElement& layout);
 	RECT m_ownerRect;

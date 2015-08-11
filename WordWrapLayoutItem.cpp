@@ -45,7 +45,7 @@ void WordWrapLayoutItem::Resize()
 		return;
 	}
 
-	m_clientRect.bottom = m_lineHeight ? m_clientRect.top + m_lineHeight : m_ownerRect.bottom - m_scrollOffset;
+	m_clientRect.bottom = m_lineHeight ? m_clientRect.top + m_lineHeight : m_ownerRect.bottom;
 	m_clientRect.right = m_ownerRect.right;
 
 	auto hdc = GetDC(nullptr);
@@ -53,21 +53,24 @@ void WordWrapLayoutItem::Resize()
 
 	if (m_clientRect.right > m_ownerRect.right)
 	{
+		// resize very long word and align bottom for scroll
 		m_clientRect.left = m_ownerRect.left;
 		m_clientRect.top = m_clientRect.bottom;
 		m_clientRect.bottom = m_lineHeight ? m_clientRect.top + m_lineHeight : m_ownerRect.bottom;
 		m_clientRect.right = m_ownerRect.right;
 		m_textFlags = m_style->SizeText(hdc, m_clientRect, m_displayText, m_displayTextLength);
 	}
+
+	if (m_lineHeight && m_textFlags)
+	{
+		const auto lines = (m_clientRect.bottom - m_clientRect.top) / m_lineHeight;
+		m_clientRect.bottom = lines * m_lineHeight < m_clientRect.bottom - m_clientRect.top
+			? m_clientRect.top + (lines + 1) * m_lineHeight
+			: m_clientRect.top + lines * m_lineHeight;
+	}
 	ReleaseDC(nullptr, hdc);
 	if (m_EOL)
 		m_clientRect.right = m_ownerRect.right;
-}
-
-void WordWrapLayoutItem::SetTop(int x, int y)
-{
-	m_clientRect.left = x;
-	m_clientRect.top = y - m_scrollOffset;
 }
 
 void WordWrapLayoutItem::SetDisplayText(const wchar_t* begin, const wchar_t* end)
@@ -89,8 +92,12 @@ void WordWrapLayoutItem::OnPaint(HDC hdc)
 {
 	if (m_style)
 	{
-		m_style->PaintBackground(hdc, m_clientRect);
-		m_style->PaintText(hdc, m_clientRect, m_displayText, m_displayTextLength, m_textFlags);
+		auto rect = m_clientRect;
+		rect.top -= m_scrollOffset;
+		rect.bottom -= m_scrollOffset;
+
+		m_style->PaintBackground(hdc, rect);
+		m_style->PaintText(hdc, rect, m_displayText, m_displayTextLength, m_textFlags);
 	}
 }
 

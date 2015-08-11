@@ -21,7 +21,6 @@ private:
 	void Resize();
 
 	// ILayoutItem
-	void SetTop(int x, int y) final override;
 	void SetDisplayText(const wchar_t* begin, const wchar_t* end) final override;
 
 	// IDrawableElement

@@ -50,7 +50,7 @@ std::locale DetectLocale(const char* begin, const char* end, const std::locale& 
 		return std::locale(defaultLocale, new std::codecvt_utf16<wchar_t>);
 	case TextEncoding::UTF32LE:
 	case TextEncoding::UTF32BE:
-		throw new std::runtime_error("not supported UTF-32!");
+		throw std::runtime_error("not supported UTF-32!");
 	default:
 		return std::locale(defaultLocale, new std::codecvt<char16_t, char, mbstate_t>);
 	}
@@ -98,15 +98,13 @@ bool ReadFirstBytes(const wchar_t* fileName, size_t bytesCount, OutputIterator o
 	assert(fileName);
 
 	std::ifstream inputFile(fileName, std::ios::in | std::ios_base::binary | std::ios::ate);
-	if (inputFile.bad())
+	if (!inputFile.is_open() || inputFile.bad())
 		return false;
 
 	size_t bufSize = min(bytesCount, inputFile.tellg());
 	inputFile.seekg(0, std::ios::beg);
-	if (!bufSize)
-		return false;
-
-	copy_n(std::istreambuf_iterator<char>(inputFile), bufSize, out);
+	if (bufSize)
+		copy_n(std::istreambuf_iterator<char>(inputFile), bufSize, out);
 	return true;
 }
 
@@ -123,22 +121,20 @@ std::shared_ptr<IListModel> UnicodeFile::OpenUnicodeFile(const wchar_t* fileName
 	
 	std::vector<char> buf;
 	buf.reserve(BufferSizeForEncodingDetector);
-	if (!ReadFirstBytes(fileName, BufferSizeForEncodingDetector, std::back_inserter(buf)))
+	if (!ReadFirstBytes(fileName, BufferSizeForEncodingDetector, back_inserter(buf)))
 		return nullptr;
 
+	std::wifstream in(fileName, std::ios::binary | std::ios::ate);
+	if (!in.is_open() || in.bad())
+		return nullptr;
+
+	in.seekg(0, std::ios::beg);
 	if (!buf.empty())
 	{
-		std::wifstream in(fileName, std::ios::binary | std::ios::ate);
-		if (!in.tellg())
-			return nullptr;
-
-		in.seekg(0, std::ios::beg);
 		locale = DetectLocale(buf.data(), buf.data() + buf.size(), in.getloc());
 		in.imbue(locale);
-		return std::shared_ptr<UnicodeFile>(new UnicodeFile(in));
 	}
-
-	return nullptr;
+	return std::shared_ptr<UnicodeFile>(new UnicodeFile(in));
 }
 
 const std::wstring& UnicodeFile::GetStringLine(size_t number) const

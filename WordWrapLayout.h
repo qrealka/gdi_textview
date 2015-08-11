@@ -19,6 +19,7 @@ private:
 	// AbstractStackLayout
 	void Clear() final override;
 	bool ItemPop() final override;
+	void AlignItem(AbstractLayoutItem* const item);
 	void ItemPush(AbstractLayoutItem* const item) final override;
 	void ScrollLineUp() final override;
 	void ScrollLineDown() final override;

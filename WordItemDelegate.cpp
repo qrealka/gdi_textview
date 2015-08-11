@@ -4,7 +4,6 @@
 #include "IListModel.h"
 #include "WordWrapLayoutItem.h"
 #include "SpacebarLayoutItem.h"
-#include <assert.h>
 
 
 namespace kofax
@@ -15,7 +14,6 @@ WordItemDelegate::WordItemDelegate(const std::shared_ptr<IListModel>& model,
 	: m_model(model)
 	, m_locale(locale)
 {
-	assert(model);
 }
 
 void WordItemDelegate::SetStyles(IStyleView* styleOne, IStyleView* styleTwo)
@@ -30,6 +28,12 @@ void WordItemDelegate::AddLineToLayout(const std::unique_ptr<IListIndex>& textIt
 	const auto& facet = std::use_facet<std::ctype<wchar_t> >(m_locale);
 	const auto& str = textIterator->ToString();
 	auto wordBegin = str.c_str();
+	
+	if (str.empty())
+	{
+		layout.ItemPush(SpacebarLayoutItem::MakeSpaces(layout, wordBegin, wordBegin + 1, true, m_wordStyleOne));
+		return;
+	}
 
 	for (auto it = str.c_str(), end = str.c_str() + str.length();; ++it)
 	{

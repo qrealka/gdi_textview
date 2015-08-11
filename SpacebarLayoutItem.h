@@ -19,7 +19,6 @@ public:
 private:
 	SpacebarLayoutItem(const IDrawableElement& layout, size_t spaceCount, bool endOfLine);
 
-	void SetTop(int x, int y) final override;
 	void SetDisplayText(const wchar_t* begin, const wchar_t* end) final override;
 
 	void OnPaint(HDC hdc) final override;

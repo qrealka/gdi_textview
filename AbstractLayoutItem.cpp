@@ -12,13 +12,27 @@ AbstractLayoutItem::AbstractLayoutItem(const IDrawableElement& layout)
 	layout.GetClientRect(m_ownerRect);
 }
 
+void AbstractLayoutItem::SetTop(int x, int y)
+{
+	const auto deltaX = x - m_clientRect.left;
+	const auto deltaY = y - m_clientRect.top;
+
+	m_clientRect.left += deltaX;
+	m_clientRect.right += deltaX;
+	m_clientRect.top += deltaY;
+	m_clientRect.bottom += deltaY;
+}
+
 void AbstractLayoutItem::SetScrollOffset(long offset)
 {
-	const long delta = offset - m_scrollOffset;
-	m_clientRect.top -= delta;
-	m_clientRect.bottom -= delta;
-
 	m_scrollOffset = offset;
+}
+
+void AbstractLayoutItem::GetClientRect(RECT& rect) const
+{
+	rect = m_clientRect;
+	rect.top -= m_scrollOffset;
+	rect.bottom -= m_scrollOffset;
 }
 
 }

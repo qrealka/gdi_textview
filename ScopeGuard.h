@@ -8,8 +8,9 @@ namespace kofax
 
 class ScopeGuard {
 public:
+	// don't use explicit here !
 	template<class Callable>
-	explicit ScopeGuard(Callable && undo_func) : f(std::forward<Callable>(undo_func)) {}
+	ScopeGuard(Callable && undo_func) : f(std::forward<Callable>(undo_func)) {}
 
 	ScopeGuard(ScopeGuard && other) : f(std::move(other.f)) {
 		other.f = nullptr;

@@ -5,6 +5,7 @@
 #include "WordItemDelegate.h"
 #include "TextViewStyle.h"
 #include <assert.h>
+#include <tchar.h>
 
 namespace kofax
 {
@@ -17,7 +18,11 @@ ViewController::ViewController(HWND hwndParent, const wchar_t* fileName)
 
 	std::locale locale;
 	m_model = UnicodeFile::OpenUnicodeFile(fileName, locale);
-	assert(m_model);
+	if (!m_model)
+	{
+		assert(m_model);
+		::MessageBox(hwndParent, _T("Cannot open input file or file is empty!"), _T("Error"), MB_ICONHAND | MB_OK);
+	}
 
 	std::unique_ptr<WordItemDelegate> itemDelegate(new WordItemDelegate(m_model, locale));
 	itemDelegate->SetStyles(new TextViewStyle(L"Arial", 18, RGB(0, 0, 0), RGB(128, 128, 128)),

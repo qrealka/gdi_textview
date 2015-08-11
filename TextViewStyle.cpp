@@ -3,7 +3,7 @@
 namespace 
 {
 
-	const UINT TextRenderParams = DT_LEFT | DT_BOTTOM | DT_EXTERNALLEADING | DT_EDITCONTROL | DT_EXPANDTABS | DT_NOPREFIX;
+const UINT TextRenderParams = DT_LEFT | DT_BOTTOM | DT_EXTERNALLEADING | DT_EDITCONTROL | DT_NOPREFIX;
 
 int PointsToLogical(int pointSize)
 {
@@ -57,31 +57,27 @@ unsigned TextViewStyle::SizeText(HDC hdc, RECT& rect, const wchar_t* text, size_
 	if (text == nullptr || !textSize)
 	{
 		SetRectEmpty(&rect);
-		return TextRenderParams | DT_WORDBREAK;;
+		return 0;
 	}
 
-	RECT rcCalc = { 0, 0, LONG_MAX, LONG_MAX };
 	auto hOld = SelectObject(hdc, m_font);
 
-	unsigned flags = TextRenderParams | DT_SINGLELINE;
-	DRAWTEXTPARAMS params = { sizeof(DRAWTEXTPARAMS), 4, 0, 0, textSize };
-	DrawTextEx(hdc, const_cast<wchar_t*>(text), textSize, &rcCalc, flags | DT_CALCRECT, &params);
+	unsigned flags = 0;
+	SIZE sz{ 0, 0 };
+	::GetTextExtentPoint32W(hdc, text, textSize, &sz);
 
-	if (rect.left < 5 && rcCalc.right > rect.right)
+	// too long word or too small window - need use slow DrawText decision
+	if (rect.left < 5 && sz.cx > rect.right - rect.left)
 	{
-		// too long word or too small window
+		RECT rcCalc{ 0, 0, rect.right - rect.left, LONG_MAX };
 		flags = TextRenderParams | DT_WORDBREAK;
-		DrawTextEx(hdc, const_cast<wchar_t*>(text), textSize, &rcCalc, TextRenderParams | DT_CALCRECT, &params);
-		
-		rect.right = rect.left + rcCalc.right;
-		rect.bottom = rect.top + rcCalc.bottom; // we don't need vertical algment because GDI ignore it whe DT_WORDBREAK specified
+		DrawText(hdc, const_cast<wchar_t*>(text), textSize, &rcCalc, flags | DT_CALCRECT);
+		rect.bottom = rect.top + rcCalc.bottom;
 	} 
 	else
 	{
-		rect.right = rect.left + rcCalc.right;
-		// if word in one line - use rect.bottom
+		rect.right = rect.left + sz.cx;
 	}
-
 
 	SelectObject(hdc, hOld);
 	return flags;
@@ -100,8 +96,18 @@ void TextViewStyle::PaintText(HDC hdc, const RECT& rect, const wchar_t* text, si
 		SetTextColor(hdc, m_foregroundColor);
 	}
 
-	DRAWTEXTPARAMS params = { sizeof(DRAWTEXTPARAMS), 4, 0, 0, textSize };
-	DrawTextEx(hdc, const_cast<wchar_t*>(text), textSize, const_cast<RECT*>(&rect), flags, &params);
+	if (flags)
+	{
+		DRAWTEXTPARAMS params = { sizeof(DRAWTEXTPARAMS), 1, 0, 0, textSize };
+		auto rc = rect;
+		DrawTextEx(hdc, const_cast<wchar_t*>(text), textSize, &rc, flags, &params);
+	}
+	else
+	{
+		DRAWTEXTPARAMS params = { sizeof(DRAWTEXTPARAMS), 1, 0, 0, textSize };
+		auto rc = rect;
+		DrawTextEx(hdc, const_cast<wchar_t*>(text), textSize, &rc, TextRenderParams | DT_SINGLELINE | DT_NOCLIP | DT_EXPANDTABS, &params);
+	}
 
 	SelectObject(hdc, hOld);
 }
@@ -111,7 +117,6 @@ void TextViewStyle::PaintBackground(HDC hdc, const RECT& rect) const
 	if (!m_defaultStyle)
 		SetBkColor(hdc, m_backgroundColor);
 	ExtTextOut(hdc, 0, 0, ETO_OPAQUE, &rect, nullptr, 0, nullptr);
-	//SetBkColor(hdc, fill);
 }
 
 void TextViewStyle::GetFontMetrics(HDC hdc, long& width, long& height) const

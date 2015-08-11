@@ -58,21 +58,33 @@ bool WordWrapLayout::ItemPop()
 	return true;
 }
 
+void WordWrapLayout::AlignItem(AbstractLayoutItem* const item)
+{
+	item->SetTop(m_lastX, m_lastY);
+	item->OnWindowResize(m_clientRect.right - m_clientRect.left,
+	                     m_clientRect.bottom - m_clientRect.top);
+
+	RECT rect;
+	item->GetClientRect(rect);
+
+	if (rect.right >= m_clientRect.right)
+	{
+		m_lastY = rect.bottom;
+		m_lastX = m_clientRect.left;
+	}
+	else
+	{
+		m_lastY = rect.top;
+		m_lastX = rect.right;
+	}
+}
+
 void WordWrapLayout::ItemPush(AbstractLayoutItem* const item)
 {
 	if (item)
 	{
 		item->SetScrollOffset(m_currentLine * m_lineHeight);
-		item->SetTop(m_lastX, m_lastY);
-		item->OnWindowResize(m_clientRect.right - m_clientRect.left,
-			m_clientRect.bottom - m_clientRect.top);
-
-		RECT rect;
-		item->GetClientRect(rect);
-
-		m_lastY = rect.top;
-		m_lastX = rect.right;
-
+		AlignItem(item);
 		m_items.emplace_back(item);
 	}
 }
@@ -105,22 +117,19 @@ void WordWrapLayout::ScrollLineDown()
 
 void WordWrapLayout::OnPaint(HDC hdc)
 {
-	long lineHeight = 0;
 	if (m_style)
 	{
-		long width;
-		m_style->GetFontMetrics(hdc, width, lineHeight);
 		m_style->PaintBackground(hdc, m_clientRect);
 	}
 
-	std::find_if(cbegin(m_items), cend(m_items), [&hdc, &lineHeight, this](const std::unique_ptr<AbstractLayoutItem>& item)
+	std::find_if(cbegin(m_items), cend(m_items), [&hdc, this](const std::unique_ptr<AbstractLayoutItem>& item)
 	{
 		RECT rect;
 		item->GetClientRect(rect);
-		if (rect.top < 0)
+		if (rect.bottom <= 0)
 			return false;
 
-		if (rect.top > m_clientRect.bottom)
+		if (rect.bottom > m_clientRect.bottom)
 			return true;
 
 		item->OnPaint(hdc);
@@ -136,8 +145,20 @@ void WordWrapLayout::OnWindowResize(int width, int height)
 	m_clientRect.right = m_clientRect.left + width;
 	m_clientRect.bottom = m_clientRect.top + height;
 
-	if (m_itemDelegate)
+	if (m_itemDelegate && m_items.empty())
+	{
 		m_itemDelegate->OnWindowResize(width, height, *this);
+	}
+	else
+	{
+		m_lastX = m_clientRect.left;
+		m_lastY = m_clientRect.top;
+
+		for_each(begin(m_items), end(m_items), [this](std::unique_ptr<AbstractLayoutItem>& item)
+		{
+			AlignItem(item.get());
+		});
+	}
 }
 
 }
